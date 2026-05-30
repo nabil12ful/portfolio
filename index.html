@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nabil Hamada - Full Stack Web Developer Portfolio | نبيل حمادة - موقع محترف">
+    <meta name="description" content="Nabil Hamada - Full Stack Web Developer Portfolio">
     <title>Nabil Hamada | Laravel Specialist</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -72,8 +72,7 @@
             </nav>
 
             <div class="flex items-center space-x-3 space-x-reverse">
-                <button @click="lang = lang === 'ar' ? 'en' : 'ar'; localStorage.setItem('lang', lang); updateDir();" 
-                        class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-darkCard hover:text-accentCyan transition-colors">
+                <button @click="toggleLang()" class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-darkCard hover:text-accentCyan transition-colors">
                     <span x-text="lang === 'ar' ? 'English' : 'عربي'"></span>
                 </button>
                 
@@ -130,7 +129,7 @@
                         <div class="font-mono text-sm space-y-1 text-slate-600 dark:text-slate-400">
                             <p><span class="text-pink-400">class</span> <span class="text-blue-400">Developer</span> {</p>
                             <p class="pl-4"><span class="text-amber-400">$experience</span> = <span class="text-emerald-400">4+ years</span>;</p>
-                            <p class="pl-4"><span class="text-amber-400">$skills</span> = [<span class="text-cyan-400">'Laravel', 'MySQL', 'Tailwind'</span>];</p>
+                            <p class="pl-4"><span class="text-amber-400">$skills</span> = [<span class="text-cyan-400">Laravel</span>, <span class="text-cyan-400">MySQL</span>];</p>
                             <p>}</p>
                         </div>
                     </div>
@@ -277,103 +276,104 @@
     <!-- Footer -->
     <footer class="py-8 bg-slate-100 dark:bg-darkBg border-t border-slate-200 dark:border-slate-800">
         <div class="max-w-7xl mx-auto px-4 text-center text-slate-600 dark:text-slate-400 text-sm">
-            <p>© 2024 Nabil Hamada. All rights reserved. | جميع الحقوق محفوظة</p>
+            <p>© 2024 Nabil Hamada. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
         function appData() {
+            const ar = {
+                'nav.about': 'عني',
+                'nav.skills': 'المهارات',
+                'nav.experience': 'الخبرة',
+                'nav.contact': 'اتصل بي',
+                'hero.available': 'متاح للمشاريع والعمل الفوري',
+                'hero.greeting': 'أهلاً بك، أنا',
+                'hero.description': 'مطوّر ويب متكامل بخبرة تزيد عن 4 سنوات متخصص في بناء تطبيقات قوية مع Laravel و Livewire.',
+                'hero.cta': 'ابدأ معي الآن',
+                'about.title': 'من أنا؟',
+                'about.description': 'مطور ويب متكامل متخصص في بناء الحلول الرقمية المتقدمة',
+                'about.feature1': 'تطوير فوري',
+                'about.feature1_desc': 'تحويل التصاميم إلى واجهات حية بسرعة واحترافية',
+                'about.feature2': 'تحسين الأداء',
+                'about.feature2_desc': 'تسريع قواعد البيانات وتحسين الاستعلامات',
+                'about.feature3': 'إدارة السيرفرات',
+                'about.feature3_desc': 'إدارة الخوادم وتهيئة DNS و SSL',
+                'about.feature4': 'قيادة الفرق',
+                'about.feature4_desc': 'قيادة فرق برمجية متعددة بكفاءة',
+                'skills.title': 'المهارات التقنية',
+                'skills.backend': 'Backend Development',
+                'skills.frontend': 'Frontend Development',
+                'skills.database': 'Databases',
+                'skills.devops': 'DevOps & Servers',
+                'exp.title': 'الخبرة العملية',
+                'exp.freelance': 'مطوّر ويب مستقل (Full Stack)',
+                'exp.remote': 'عمل حر عالمي',
+                'exp.date1': '2021 - الحالي',
+                'exp.desc1': 'تطوير تطبيقات ويب متقدمة للعملاء العالميين مع التركيز على الجودة والأداء',
+                'exp.backend': 'Backend Web Developer & Team Lead',
+                'exp.company': 'Comma Codes Group - القاهرة',
+                'exp.date2': '2022 - 2023',
+                'exp.desc2': 'قيادة فريق تطوير مكون من 4 مهندسين لتطوير مشاريع عملاقة',
+                'contact.title': 'تواصل معي',
+                'contact.description': 'متاح دائماً للتواصل والتعاون في مشاريع جديدة',
+            };
+
+            const en = {
+                'nav.about': 'About',
+                'nav.skills': 'Skills',
+                'nav.experience': 'Experience',
+                'nav.contact': 'Contact',
+                'hero.available': 'Available for projects & freelance work',
+                'hero.greeting': 'Hello, I\'m',
+                'hero.description': 'Full Stack Web Developer with 4+ years experience specializing in building robust applications with Laravel and Livewire.',
+                'hero.cta': 'Get In Touch',
+                'about.title': 'About Me',
+                'about.description': 'Full Stack Web Developer specializing in advanced digital solutions',
+                'about.feature1': 'Fast Development',
+                'about.feature1_desc': 'Converting designs to live interfaces quickly and professionally',
+                'about.feature2': 'Performance',
+                'about.feature2_desc': 'Accelerating databases and optimizing queries',
+                'about.feature3': 'Server Management',
+                'about.feature3_desc': 'Managing servers and configuring DNS and SSL',
+                'about.feature4': 'Team Leadership',
+                'about.feature4_desc': 'Leading multiple development teams efficiently',
+                'skills.title': 'Technical Skills',
+                'skills.backend': 'Backend Development',
+                'skills.frontend': 'Frontend Development',
+                'skills.database': 'Databases',
+                'skills.devops': 'DevOps and Servers',
+                'exp.title': 'Professional Experience',
+                'exp.freelance': 'Freelance Web Developer (Full Stack)',
+                'exp.remote': 'Global Freelance',
+                'exp.date1': '2021 - Present',
+                'exp.desc1': 'Developing advanced web applications for international clients with focus on quality and performance',
+                'exp.backend': 'Backend Web Developer and Team Lead',
+                'exp.company': 'Comma Codes Group - Cairo',
+                'exp.date2': '2022 - 2023',
+                'exp.desc2': 'Leading a development team of 4 engineers to develop large-scale projects',
+                'contact.title': 'Get In Touch',
+                'contact.description': 'Always available for communication and collaboration on new projects',
+            };
+
             return {
                 darkMode: localStorage.getItem('darkMode') !== 'false',
                 lang: localStorage.getItem('lang') || 'ar',
                 
-                translations: {
-                    ar: {
-                        'nav.about': 'عني',
-                        'nav.skills': 'المهارات',
-                        'nav.experience': 'الخبرة',
-                        'nav.contact': 'اتصل بي',
-                        'hero.available': 'متاح للمشاريع والعمل الفوري',
-                        'hero.greeting': 'أهلاً بك، أنا',
-                        'hero.description': 'مطوّر ويب متكامل بخبرة تزيد عن 4 سنوات متخصص في بناء تطبيقات قوية مع Laravel و Livewire.',
-                        'hero.cta': 'ابدأ معي الآن',
-                        'about.title': 'من أنا؟',
-                        'about.description': 'مطور ويب متكامل متخصص في بناء الحلول الرقمية المتقدمة',
-                        'about.feature1': 'تطوير فوري',
-                        'about.feature1_desc': 'تحويل التصاميم إلى واجهات حية بسرعة واحترافية',
-                        'about.feature2': 'تحسين الأداء',
-                        'about.feature2_desc': 'تسريع قواعد البيانات وتحسين الاستعلامات',
-                        'about.feature3': 'إدارة السيرفرات',
-                        'about.feature3_desc': 'إدارة الخوادم وتهيئة DNS و SSL',
-                        'about.feature4': 'قيادة الفرق',
-                        'about.feature4_desc': 'قيادة فرق برمجية متعددة بكفاءة',
-                        'skills.title': 'المهارات التقنية',
-                        'skills.backend': 'Backend Development',
-                        'skills.frontend': 'Frontend Development',
-                        'skills.database': 'Databases',
-                        'skills.devops': 'DevOps & Servers',
-                        'exp.title': 'الخبرة العملية',
-                        'exp.freelance': 'مطوّر ويب مستقل (Full Stack)',
-                        'exp.remote': 'عمل حر عالمي',
-                        'exp.date1': '2021 - الحالي',
-                        'exp.desc1': 'تطوير تطبيقات ويب متقدمة للعملاء العالميين مع التركيز على الجودة والأداء',
-                        'exp.backend': 'Backend Web Developer & Team Lead',
-                        'exp.company': 'Comma Codes Group - القاهرة',
-                        'exp.date2': '2022 - 2023',
-                        'exp.desc2': 'قيادة فريق تطوير مكون من 4 مهندسين لتطوير مشاريع عملاقة',
-                        'contact.title': 'تواصل معي',
-                        'contact.description': 'متاح دائماً للتواصل والتعاون في مشاريع جديدة',
-                    },
-                    en: {
-                        'nav.about': 'About',
-                        'nav.skills': 'Skills',
-                        'nav.experience': 'Experience',
-                        'nav.contact': 'Contact',
-                        'hero.available': 'Available for projects & freelance work',
-                        'hero.greeting': 'Hello, I\'m',
-                        'hero.description': 'Full Stack Web Developer with 4+ years experience specializing in building robust applications with Laravel and Livewire.',
-                        'hero.cta': 'Get In Touch',
-                        'about.title': 'About Me',
-                        'about.description': 'Full Stack Web Developer specializing in advanced digital solutions',
-                        'about.feature1': 'Fast Development',
-                        'about.feature1_desc': 'Converting designs to live interfaces quickly and professionally',
-                        'about.feature2': 'Performance',
-                        'about.feature2_desc': 'Accelerating databases and optimizing queries',
-                        'about.feature3': 'Server Management',
-                        'about.feature3_desc': 'Managing servers and configuring DNS & SSL',
-                        'about.feature4': 'Team Leadership',
-                        'about.feature4_desc': 'Leading multiple development teams efficiently',
-                        'skills.title': 'Technical Skills',
-                        'skills.backend': 'Backend Development',
-                        'skills.frontend': 'Frontend Development',
-                        'skills.database': 'Databases',
-                        'skills.devops': 'DevOps & Servers',
-                        'exp.title': 'Professional Experience',
-                        'exp.freelance': 'Freelance Web Developer (Full Stack)',
-                        'exp.remote': 'Global Freelance',
-                        'exp.date1': '2021 - Present',
-                        'exp.desc1': 'Developing advanced web applications for international clients with focus on quality and performance',
-                        'exp.backend': 'Backend Web Developer & Team Lead',
-                        'exp.company': 'Comma Codes Group - Cairo',
-                        'exp.date2': '2022 - 2023',
-                        'exp.desc2': 'Leading a development team of 4 engineers to develop large-scale projects',
-                        'contact.title': 'Get In Touch',
-                        'contact.description': 'Always available for communication and collaboration on new projects',
-                    }
-                },
-
                 t(key) {
-                    return this.translations[this.lang]?.[key] || key;
+                    return this.lang === 'ar' ? ar[key] : en[key];
                 },
 
-                updateDir() {
+                toggleLang() {
+                    this.lang = this.lang === 'ar' ? 'en' : 'ar';
+                    localStorage.setItem('lang', this.lang);
                     document.documentElement.lang = this.lang;
                     document.documentElement.dir = this.lang === 'ar' ? 'rtl' : 'ltr';
-                    document.documentElement.setAttribute('dir', this.lang === 'ar' ? 'rtl' : 'ltr');
                 },
 
                 init() {
-                    this.updateDir();
+                    document.documentElement.lang = this.lang;
+                    document.documentElement.dir = this.lang === 'ar' ? 'rtl' : 'ltr';
                     this.$watch('darkMode', (val) => localStorage.setItem('darkMode', val));
                 }
             }
