@@ -1,411 +1,15 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" x-data="{ 
-    darkMode: true, 
-    mobileMenuOpen: false,
-    currentLang: localStorage.getItem('lang') || 'ar',
-    activeTab: 'all',
-    terminalCommand: '',
-    terminalHistory: [],
-    terminalLogs: [
-        { text: 'نظام تشغيل نبيل حمادة الإصدار v4.4.0 | Nabil Hamada OS v4.4.0', type: 'system' },
-        { text: 'تم تهيئة قاعدة البيانات بنجاح. اكتب &quot;help&quot; أو &quot;php artisan list&quot; للتفاعل المباشر. | Database initialized successfully.', type: 'system' }
-    ],
-    selectedProjectId: null,
-    formSubmitted: false,
-    formData: { name: '', email: '', subject: '', message: '' },
-    isSending: false,
-    
-    init() {
-        this.$watch('currentLang', (lang) => {
-            localStorage.setItem('lang', lang);
-            document.documentElement.lang = lang;
-            document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
-        });
-    },
-    
-    t(key) {
-        return this.translations[this.currentLang][key] || key;
-    },
-
-    translations: {
-        ar: {
-            // Navigation
-            'nav.about': 'عني',
-            'nav.skills': 'المهارات',
-            'nav.experience': 'الخبرة',
-            'nav.projects': 'أهم المشاريع',
-            'nav.terminal': 'التيرمينال',
-            'nav.contact': 'اتصل بي',
-            'nav.download': 'تحميل كود الموقع',
-            'nav.hire': 'توظيف فوري',
-            'nav.language': 'English',
-            
-            // Hero Section
-            'hero.available': 'متاح للمشاريع والعمل الفوري والتعاقد',
-            'hero.greeting': 'أهلاً بك، أنا',
-            'hero.name': 'نبيل حمادة إبراهيم',
-            'hero.title': 'Full Stack Web Developer (Laravel Specialist)',
-            'hero.description': 'أبني تطبيقات ويب Scalable ومتطورة تحوّل الأفكار إلى منتجات رقمية ناجحة. أمتلك خبرة تزيد عن 4 سنوات في بناء الحلول البرمجية المتكاملة بمقاييس عالمية.',
-            'hero.viewProjects': 'عرض أعمالي',
-            'hero.downloadCV': 'تحميل السيرة الذاتية (PDF)',
-            'hero.downloadHTML': 'تنزيل هذا الملف التفاعلي (index.html) مباشرة لجهازك',
-            'hero.technologies': 'أبرز التقنيات التي أعمل بها يومياً',
-            
-            // About Section
-            'about.title': 'من أنا؟',
-            'about.heading': 'بناء وتطوير الواجهات الخلفية والأمامية باحترافية',
-            'about.text1': 'أنا مطور ويب متكامل بخلفية تقنية متينة تزيد عن 4 سنوات، تخصصت خلالها في بناء تطبيقات قوية بالاعتماد على معايير البرمجة الحديثة.',
-            'about.text2': 'خلال مسيرتي، قمت بقيادة فرق برمجية مكونة من عدة مهندسين لتقديم منتجات للمؤسسات بمقاييس عالمية مع الالتزام بأفضل الممارسات.',
-            'about.feature1': 'تطوير فوري للمشاريع',
-            'about.feature1_desc': 'تحويل تصاميم Figma/PSD إلى واجهات حية بيكسل-بيرفكت.',
-            'about.feature2': 'تحسين كفاءة الاستعلامات',
-            'about.feature2_desc': 'تسريع أداء قواعد البيانات وتقليل زمن استجابة الخادم.',
-            'about.feature3': 'إدارة السيرفرات والتسليم',
-            'about.feature3_desc': 'رفع المواقع وإدارتها على خوادم Ubuntu وتهيئة الـ DNS والـ SSL.',
-            'about.feature4': 'قيادة الفرق التقنية',
-            'about.feature4_desc': 'خبرة في إدارة المطورين واعتماد أسلوب Agile لإنجاز المهام.',
-            
-            // Skills Section
-            'skills.title': 'المهارات التقنية',
-            'skills.heading': 'القدرات والخبرة التكنولوجية التي أمتلكها',
-            'skills.description': 'مجموعة من أفضل وأحدث التكنولوجيات التي أثبت من خلالها كفاءة عالية في تسليم المشاريع بجودة عالية.',
-            'skills.backend': 'تطوير الـ Backend',
-            'skills.frontend': 'تطوير الـ Frontend',
-            'skills.database': 'قواعد البيانات والسيرفرات',
-            'skills.integration': 'الدمج والربط الخارجي',
-            
-            // Terminal Section
-            'terminal.title': 'Artisan Live Console',
-            'terminal.description': 'للمطورين والمهتمين بالتوظيف: جرب كتابة أوامر برمجية حية للتواصل مع سيرتي الذاتية التفاعلية.',
-            'terminal.placeholder': 'اكتب help واضغط Enter لترى الأوامر المتاحة...',
-            'terminal.quickCommands': 'أوامر سريعة للضغط والنسخ:',
-            
-            // Experience Section
-            'exp.timeline': 'الجدول الزمني المهني',
-            'exp.heading': 'الخبرة العملية والوظائف السابقة',
-            'exp.description': 'مسيرة مليئة بالتحديات والتعلم المستمر وقيادة الفرق بنجاح.',
-            'exp.freelance': 'مطور ويب مستقل (Full Stack Developer)',
-            'exp.remote': 'عن بعد (Remote) | عمل حر عالمي',
-            'exp.current': '03/2021 - الحالي',
-            'exp.freelance_desc': 'توليت مسؤولية التحليل والتخطيط الكامل لمتطلبات العملاء العالميين، وتحويلها إلى تطبيقات ويب متقدمة وفق أفضل الممارسات.',
-            'exp.backend_dev': 'Backend Web Developer (Laravel) / Team Leader',
-            'exp.comma': 'Comma Codes Group - القاهرة، مصر',
-            'exp.comma_date': '12/2022 - 07/2023',
-            'exp.comma_desc': 'قمت بقيادة وإدارة فريق تطوير برمجيات مكون من 4 مهندسين لتصميم وفحص واختبار وإطلاق برمجيات ومشاريع عملاقة مع التركيز على الجودة والأداء.',
-        },
-        en: {
-            // Navigation
-            'nav.about': 'About',
-            'nav.skills': 'Skills',
-            'nav.experience': 'Experience',
-            'nav.projects': 'Featured Projects',
-            'nav.terminal': 'Terminal',
-            'nav.contact': 'Contact',
-            'nav.download': 'Download Source Code',
-            'nav.hire': 'Hire Now',
-            'nav.language': 'عربي',
-            
-            // Hero Section
-            'hero.available': 'Available for projects, freelance work & consulting',
-            'hero.greeting': 'Hello, I\'m',
-            'hero.name': 'Nabil Hamada Ebrahim',
-            'hero.title': 'Full Stack Web Developer (Laravel Specialist)',
-            'hero.description': 'I build scalable and sophisticated web applications that transform ideas into successful digital products. I have over 4 years of experience building integrated programming solutions at a global scale.',
-            'hero.viewProjects': 'View My Work',
-            'hero.downloadCV': 'Download Resume (PDF)',
-            'hero.downloadHTML': 'Download this interactive file (index.html) directly to your device',
-            'hero.technologies': 'Featured technologies I work with daily',
-            
-            // About Section
-            'about.title': 'Who Am I?',
-            'about.heading': 'Building frontend and backend solutions professionally',
-            'about.text1': 'I am a full-stack web developer with a solid technical background of over 4 years, specializing in building robust applications based on modern programming standards.',
-            'about.text2': 'Throughout my career, I have led programming teams consisting of several engineers to deliver enterprise-level products with global standards while adhering to best practices.',
-            'about.feature1': 'Fast Project Development',
-            'about.feature1_desc': 'Converting Figma/PSD designs into pixel-perfect live interfaces.',
-            'about.feature2': 'Query Optimization',
-            'about.feature2_desc': 'Accelerating database performance and reducing server response time.',
-            'about.feature3': 'Server Management & Deployment',
-            'about.feature3_desc': 'Hosting websites and managing them on Ubuntu servers, configuring DNS and SSL.',
-            'about.feature4': 'Technical Team Leadership',
-            'about.feature4_desc': 'Experience managing developers and adopting Agile methodology for task completion.',
-            
-            // Skills Section
-            'skills.title': 'Technical Skills',
-            'skills.heading': 'Technical capabilities and expertise I possess',
-            'skills.description': 'A collection of the best and latest technologies that have proven my high proficiency in delivering high-quality projects.',
-            'skills.backend': 'Backend Development',
-            'skills.frontend': 'Frontend Development',
-            'skills.database': 'Databases & Servers',
-            'skills.integration': 'Third-party Integration',
-            
-            // Terminal Section
-            'terminal.title': 'Artisan Live Console',
-            'terminal.description': 'For developers and hiring managers: Try typing live programming commands to interact with my interactive resume.',
-            'terminal.placeholder': 'Type "help" and press Enter to see available commands...',
-            'terminal.quickCommands': 'Quick command buttons:',
-            
-            // Experience Section
-            'exp.timeline': 'Professional Timeline',
-            'exp.heading': 'Professional Experience & Previous Positions',
-            'exp.description': 'A journey full of challenges, continuous learning, and successful team leadership.',
-            'exp.freelance': 'Freelance Web Developer (Full Stack Developer)',
-            'exp.remote': 'Remote | Global Freelance',
-            'exp.current': '03/2021 - Present',
-            'exp.freelance_desc': 'I took responsibility for complete analysis and planning of international client requirements, converting them into advanced web applications according to best practices.',
-            'exp.backend_dev': 'Backend Web Developer (Laravel) / Team Leader',
-            'exp.comma': 'Comma Codes Group - Cairo, Egypt',
-            'exp.comma_date': '12/2022 - 07/2023',
-            'exp.comma_desc': 'I led and managed a software development team of 4 engineers to design, test, and launch large-scale software and projects with a focus on quality and performance.',
-        }
-    },
-    
-    downloadSelf() {
-        try {
-            const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-            const blob = new Blob([htmlContent], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'index.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        } catch (e) {
-            console.error('فشل تحميل الملف التفاعلي | Failed to download file:', e);
-        }
-    },
-
-    projects: [
-        {
-            id: 'zawaya',
-            titleAr: 'Zawaya Platform',
-            titleEn: 'Zawaya Platform',
-            categoryAr: 'elearning',
-            categoryEn: 'elearning',
-            badgeAr: 'منصة بث مباشر تعليمية',
-            badgeEn: 'Live streaming education platform',
-            colorAr: 'from-cyan-600 to-blue-600',
-            colorEn: 'from-cyan-600 to-blue-600',
-            shortDescAr: 'منصة بث مباشر تعليمية سعودية تدعم آلاف الطلاب المتزامنين في وقت واحد مع تكامل بوابة دفع Apple Pay و[...]',
-            shortDescEn: 'Saudi live streaming educational platform supporting thousands of concurrent students with Apple Pay integration and [...]',
-            techs: ['Laravel', 'MySQL', 'BigBlueButton API', 'Apple Pay', 'Tailwind CSS'],
-            code: `namespace App\\Http\\Controllers;
-
-use App\\Models\\Lesson;
-use App\\Services\\BigBlueButtonService;
-use Illuminate\\Http\\JsonResponse;
-
-class LessonController extends Controller
-{
-    /**
-     * انضمام آمن إلى جلسات البث قبل البدء بـ 5 دقائق فقط لمنع استهلاك الخادم تلقائياً.
-     */
-    public function joinSession(Lesson $lesson): JsonResponse
-    {
-        // التحقق من صلاحية الطالب لمشاهدة الدرس الحالي
-        $this->authorize('view', $lesson);
-
-        // التحقق من أن تفعيل الزر متاح فقط قبل البدء بـ 5 دقائق
-        if ($lesson->starts_at->subMinutes(5)->isFuture()) {
-            return response()->json([
-                'status' => 'locked',
-                'message' => 'عذراً، تفعيل زر الدخول متاح فقط قبل موعد الحصة بـ 5 دقائق.'
-            ], 403);
-        }
-
-        // توليد رابط دخول آمن ومشفر عبر خادم الـ API لمنع التزوير والتسلل
-        $joinUrl = BigBlueButtonService::generateSecureJoinUrl([
-            'meeting_id' => 'session_unit_' . $lesson->id,
-            'meeting_name' => $lesson->title,
-            'user_name' => auth()->user()->name,
-            'role' => auth()->user()->is_teacher ? 'moderator' : 'viewer',
-            'redirect_back' => route('lessons.completed', $lesson->id)
-        ]);
-
-        return response()->json([
-            'status' => 'active',
-            'join_url' => $joinUrl
-        ]);
-    }
-}`
-        },
-        {
-            id: 'modareskom',
-            titleAr: 'Modareskom',
-            titleEn: 'Modareskom',
-            categoryAr: 'elearning',
-            categoryEn: 'elearning',
-            badgeAr: 'سوق تعليمي متعدد الموردين',
-            badgeEn: 'Multi-vendor educational marketplace',
-            code: `namespace App\\Http\\Controllers;
-
-use App\\Models\\TimeSlot;
-use Illuminate\\Support\\Facades\\DB;
-
-class BookingController extends Controller
-{
-    public function bookSlot(TimeSlot $slot)
-    {
-        return DB::transaction(function () use ($slot) {
-            $lockedSlot = TimeSlot::where('id', $slot->id)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($lockedSlot->is_booked) {
-                return response()->json(['error' => 'هذه الحصة تم حجزها بالفعل.'], 422);
-            }
-
-            $booking = auth()->user()->bookings()->create([
-                'time_slot_id' => $lockedSlot->id,
-                'status' => 'pending_payment'
-            ]);
-
-            return response()->json(['status' => 'reserved']);
-        });
-    }
-}`
-        },
-        {
-            id: 'redshield',
-            titleAr: '9 Red Shield',
-            titleEn: '9 Red Shield',
-            categoryAr: 'systems',
-            categoryEn: 'systems',
-            badgeAr: 'منظومة إدارة شركات الإطفاء',
-            badgeEn: 'Firefighting companies management system',
-            code: `namespace App\\Http\\Controllers;
-
-use App\\Models\\Contract;
-use App\\Models\\Branch;
-use Illuminate\\Support\\Facades\\DB;
-
-class FirefightingContractController extends Controller
-{
-    public function storeContract(Request $request)
-    {
-        return DB::transaction(function () use ($request) {
-            $contract = Contract::create([
-                'project_name' => $request->project_name,
-                'branch_id' => $request->branch_id,
-                'value' => $request->contract_value,
-                'status' => 'active'
-            ]);
-
-            return response()->json(['status' => 'success']);
-        });
-    }
-}`
-        },
-        {
-            id: 'elhaffar',
-            titleAr: 'Elhaffar Rig Store',
-            titleEn: 'Elhaffar Rig Store',
-            categoryAr: 'ecommerce',
-            categoryEn: 'ecommerce',
-            badgeAr: 'متجر إلكتروني للمعدات الثقيلة',
-            badgeEn: 'Heavy equipment e-commerce store',
-            code: `namespace App\\Http\\Controllers;
-
-use App\\Models\\Product;
-use Illuminate\\Support\\Facades\\DB;
-
-class InventoryController extends Controller
-{
-    public function checkoutCart()
-    {
-        return DB::transaction(function () {
-            $product = Product::where('id', $itemId)
-                ->lockForUpdate()
-                ->firstOrFail();
-
-            if ($product->stock < $quantity) {
-                throw new \\Exception('Stock unavailable');
-            }
-
-            $product->decrement('stock', $quantity);
-            return response()->json(['status' => 'success']);
-        });
-    }
-}`
-        }
-    ],
-
-    getSelectedProject() {
-        return this.projects.find(p => p.id === this.selectedProjectId) || null;
-    },
-    
-    executeTerminal() {
-        let cmd = this.terminalCommand.trim().toLowerCase();
-        if (!cmd) return;
-        this.terminalHistory.push(this.terminalCommand);
-        this.terminalLogs.push({ text: `nabil_hamada@guest:~$ ${this.terminalCommand}`, type: 'input' });
-        
-        let response = '';
-        if (cmd === 'help' || cmd === 'php artisan help' || cmd === 'php artisan list' || cmd === 'php artisan') {
-            response = this.currentLang === 'ar' 
-                ? 'الأوامر المتاحة:\n  about          - نبذة سريعة عن نبيل حمادة\n  skills         - عرض المهارات البرمجية\n  projects       - المشاريع الرئيسية\n  experience     - الخبرات المهنية'
-                : 'Available commands:\n  about          - Brief overview about Nabil Hamada\n  skills         - Programming skills\n  projects       - Featured projects\n  experience     - Professional experience';
-        } else if (cmd === 'about' || cmd === 'php artisan about') {
-            response = this.currentLang === 'ar'
-                ? 'Nabil Hamada Ebrahim:\nمطوّر ويب متكامل (Full Stack Web Developer) بخبرة تزيد عن 4 سنوات، متخصص في بيئة Laravel'
-                : 'Nabil Hamada Ebrahim:\nFull Stack Web Developer with 4+ years of experience, specializing in Laravel ecosystem';
-        } else if (cmd === 'skills' || cmd === 'php artisan skills') {
-            response = this.currentLang === 'ar'
-                ? 'المهارات:\n- Backend: Laravel, PHP, RESTful APIs, OOP\n- Frontend: Livewire, Tailwind CSS, Alpine.js\n- Databases: MySQL, Schema Design, Optimization'
-                : 'Skills:\n- Backend: Laravel, PHP, RESTful APIs, OOP\n- Frontend: Livewire, Tailwind CSS, Alpine.js\n- Databases: MySQL, Schema Design, Optimization';
-        } else if (cmd === 'projects' || cmd === 'php artisan projects') {
-            response = this.currentLang === 'ar'
-                ? 'المشاريع الرئيسية:\n1. Zawaya Platform (منصة البث التعليمي)\n2. Modareskom (سوق المدرسين)\n3. 9 Red Shield (نظام الإدارة)'
-                : 'Featured Projects:\n1. Zawaya Platform (Live Education)\n2. Modareskom (Teachers Marketplace)\n3. 9 Red Shield (Management System)';
-        } else if (cmd === 'experience' || cmd === 'php artisan experience') {
-            response = this.currentLang === 'ar'
-                ? 'الخبرات:\n- Full Stack Developer (Freelancer) | 2021 - Present\n- Backend Web Developer & Team Lead | Comma Codes (2022-2023)'
-                : 'Experience:\n- Full Stack Developer (Freelancer) | 2021 - Present\n- Backend Web Developer & Team Lead | Comma Codes (2022-2023)';
-        } else if (cmd === 'clear') {
-            this.terminalLogs = [];
-            this.terminalCommand = '';
-            return;
-        } else {
-            response = this.currentLang === 'ar'
-                ? `Command "${cmd}" not found. Type "help" for options.`
-                : `Command "${cmd}" not found. Type "help" for options.`;
-        }
-        
-        setTimeout(() => {
-            this.terminalLogs.push({ text: response, type: 'output' });
-            this.$nextTick(() => {
-                let objDiv = document.getElementById('terminal-body');
-                objDiv.scrollTop = objDiv.scrollHeight;
-            });
-        }, 150);
-        
-        this.terminalCommand = '';
-    },
-    
-    submitContactForm() {
-        this.isSending = true;
-        setTimeout(() => {
-            this.isSending = false;
-            this.formSubmitted = true;
-            this.formData = { name: '', email: '', subject: '', message: '' };
-            setTimeout(() => { this.formSubmitted = false; }, 5000);
-        }, 1500);
-    }
-}" :class="{ 'dark': darkMode }">
+<html lang="ar" dir="rtl" x-data="appData()" x-cloak>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Nabil Hamada Ebrahim - Full Stack Web Developer & Laravel Specialist Portfolio | نبيل حمادة - مطور ويب متكامل">
-    <title>Nabil Hamada | Laravel Specialist & Full-Stack Developer</title>
+    <meta name="description" content="Nabil Hamada - Full Stack Web Developer Portfolio | نبيل حمادة - موقع محترف">
+    <title>Nabil Hamada | Laravel Specialist</title>
     
-    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -425,261 +29,110 @@ class InventoryController extends Controller
             }
         }
     </script>
-    <!-- FontAwesome for Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Alpine.js -->
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     
     <style>
         [x-cloak] { display: none !important; }
-        html {
-            scroll-behavior: smooth;
-        }
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #0A1428;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #1E293B;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #00D4FF;
-        }
-        .glow-cyan {
-            box-shadow: 0 0 15px rgba(0, 212, 255, 0.35);
-        }
-        .glow-text {
-            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
-        }
-
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0A1428; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #00D4FF; }
+        .glow-cyan { box-shadow: 0 0 15px rgba(0, 212, 255, 0.35); }
+        .glow-text { text-shadow: 0 0 10px rgba(0, 212, 255, 0.5); }
         @media print {
-            body {
-                background: white !important;
-                color: black !important;
-            }
-            header, footer, #terminal, .no-print, button, .flex-wrap, #contact form, .no-print-btn {
-                display: none !important;
-            }
-            section {
-                padding: 10px 0 !important;
-                page-break-inside: avoid;
-            }
-            .dark {
-                background: white !important;
-                color: black !important;
-            }
+            body { background: white !important; color: black !important; }
+            header, #terminal, .no-print, button { display: none !important; }
         }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-900 dark:bg-darkBg dark:text-slate-100 transition-colors duration-300 font-sans antialiased selection:bg-cyan-500 selection:text-white">
+<body class="bg-slate-50 text-slate-900 dark:bg-darkBg dark:text-slate-100 transition-colors duration-300 font-sans antialiased" :class="{ 'dark': darkMode }">
 
-    <!-- Header & Navigation -->
-    <header class="fixed top-0 w-full z-40 bg-white/80 dark:bg-darkBg/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 transition-colors">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-40 bg-white/80 dark:bg-darkBg/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
             
-            <!-- Logo -->
-            <a href="#hero" class="flex items-center space-x-2 space-x-reverse group">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-accentBlue to-accentCyan flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
-                    <span class="text-white font-bold text-xl font-mono">N</span>
+            <a href="#hero" class="flex items-center space-x-2 space-x-reverse">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-accentBlue to-accentCyan flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">N</span>
                 </div>
                 <div class="flex flex-col">
-                    <span class="font-bold text-lg leading-tight tracking-tight dark:text-white">نبيل حمادة</span>
-                    <span class="text-xs text-slate-500 dark:text-accentCyan font-mono font-semibold">Laravel Specialist</span>
+                    <span class="font-bold text-lg dark:text-white">نبيل حمادة</span>
+                    <span class="text-xs text-accentCyan font-semibold">Laravel Specialist</span>
                 </div>
             </a>
 
-            <!-- Desktop Navigation -->
-            <nav class="hidden md:flex items-center space-x-8 space-x-reverse font-medium text-sm">
-                <a href="#about" x-text="t('nav.about')"></a>
-                <a href="#skills" x-text="t('nav.skills')"></a>
-                <a href="#experience" x-text="t('nav.experience')"></a>
-                <a href="#projects" x-text="t('nav.projects')"></a>
-                <a href="#terminal" class="font-mono" x-text="t('nav.terminal')"></a>
-                <a href="#contact" x-text="t('nav.contact')"></a>
+            <nav class="hidden md:flex space-x-8 space-x-reverse font-medium text-sm">
+                <a href="#about" class="hover:text-accentCyan transition-colors" x-text="t('nav.about')"></a>
+                <a href="#skills" class="hover:text-accentCyan transition-colors" x-text="t('nav.skills')"></a>
+                <a href="#experience" class="hover:text-accentCyan transition-colors" x-text="t('nav.experience')"></a>
+                <a href="#contact" class="hover:text-accentCyan transition-colors" x-text="t('nav.contact')"></a>
             </nav>
 
-            <!-- Mode Switcher & CTAs -->
-            <div class="hidden md:flex items-center space-x-4 space-x-reverse">
-                <!-- Language Toggle -->
-                <button @click="currentLang = currentLang === 'ar' ? 'en' : 'ar'" class="p-2.5 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentBlue dark:hover:text-accentCyan transition-colors text-sm font-semibold" :title="t('nav.language')">
-                    <span x-text="t('nav.language')"></span>
+            <div class="flex items-center space-x-3 space-x-reverse">
+                <button @click="lang = lang === 'ar' ? 'en' : 'ar'; localStorage.setItem('lang', lang); updateDir();" 
+                        class="px-3 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-darkCard hover:text-accentCyan transition-colors">
+                    <span x-text="lang === 'ar' ? 'English' : 'عربي'"></span>
                 </button>
                 
-                <!-- Theme Toggle -->
-                <button @click="darkMode = !darkMode" class="p-2.5 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentBlue dark:hover:text-accentCyan transition-colors">
-                    <template x-if="!darkMode">
-                        <i class="fa-solid fa-moon text-lg"></i>
-                    </template>
-                    <template x-if="darkMode">
-                        <i class="fa-solid fa-sun text-lg text-amber-400"></i>
-                    </template>
+                <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-slate-100 dark:bg-darkCard hover:text-accentCyan transition-colors">
+                    <i class="fa-solid" :class="darkMode ? 'fa-sun text-amber-400' : 'fa-moon'"></i>
                 </button>
-                
-                <!-- Download HTML Source Code -->
-                <button @click="downloadSelf()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-darkCard text-slate-700 dark:text-white border border-slate-300 dark:border-slate-700 hover:border-accentCyan transition-colors flex items-center gap-2">
-                    <i class="fa-solid fa-download text-accentCyan"></i>
-                    <span x-text="t('nav.download')"></span>
-                </button>
-                
-                <a href="#contact" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-accentBlue to-accentCyan text-white shadow-md hover:opacity-90 transition-all transform hover:scale-105" x-text="t('nav.hire')">
-                </a>
-            </div>
-
-            <!-- Mobile Menu Button -->
-            <div class="flex items-center space-x-3 space-x-reverse md:hidden">
-                <!-- Mobile Language Toggle -->
-                <button @click="currentLang = currentLang === 'ar' ? 'en' : 'ar'" class="p-2 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 text-xs font-semibold" x-text="t('nav.language')">
-                </button>
-                
-                <!-- Mobile Theme Toggle -->
-                <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentCyan transition-colors">
-                    <template x-if="!darkMode">
-                        <i class="fa-solid fa-moon"></i>
-                    </template>
-                    <template x-if="darkMode">
-                        <i class="fa-solid fa-sun text-amber-400"></i>
-                    </template>
-                </button>
-                
-                <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-darkCard transition-colors">
-                    <i class="fa-solid fa-bars text-xl" x-show="!mobileMenuOpen"></i>
-                    <i class="fa-solid fa-xmark text-xl" x-show="mobileMenuOpen" x-cloak></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Mobile Menu -->
-        <div x-show="mobileMenuOpen" 
-             x-transition:enter="transition ease-out duration-150"
-             x-transition:enter-start="opacity-0 -translate-y-2"
-             x-transition:enter-end="opacity-100 translate-y-0"
-             x-transition:leave="transition ease-in duration-100"
-             x-transition:leave-start="opacity-100 translate-y-0"
-             x-transition:leave-end="opacity-0 -translate-y-2"
-             class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-darkBg px-4 py-3 space-y-2" x-cloak>
-            <a href="#about" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200" x-text="t('nav.about')"></a>
-            <a href="#skills" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200" x-text="t('nav.skills')"></a>
-            <a href="#experience" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200" x-text="t('nav.experience')"></a>
-            <a href="#projects" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200" x-text="t('nav.projects')"></a>
-            <a href="#terminal" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200 font-mono" x-text="t('nav.terminal')"></a>
-            <a href="#contact" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200" x-text="t('nav.contact')"></a>
-            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
-                <button @click="downloadSelf(); mobileMenuOpen = false" class="w-full text-center py-2 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-700 dark:text-slate-200 text-sm font-semibold flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-download text-accentCyan"></i>
-                    <span x-text="t('nav.download')"></span>
-                </button>
-                <a href="#contact" @click="mobileMenuOpen = false" class="block text-center w-full py-2.5 rounded-lg bg-gradient-to-r from-accentBlue to-accentCyan text-white font-semibold text-sm" x-text="t('nav.hire')">
-                </a>
             </div>
         </div>
     </header>
 
     <!-- Hero Section -->
     <section id="hero" class="relative pt-32 pb-20 md:py-40 flex items-center overflow-hidden">
-        <!-- Background Gradients -->
-        <div class="absolute inset-0 z-0 opacity-40 dark:opacity-100">
+        <div class="absolute inset-0 z-0 opacity-40">
             <div class="absolute top-20 right-1/4 w-96 h-96 bg-accentBlue/20 rounded-full blur-3xl"></div>
-            <div class="absolute bottom-10 left-1/4 w-[500px] h-[500px] bg-accentCyan/10 rounded-full blur-[120px]"></div>
-            <div class="absolute inset-0 bg-[linear-gradient(to_right,#00d4ff0a_1px,transparent_1px),linear-gradient(to_bottom,#00d4ff0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_0%,black,transparent)]"></div>
+            <div class="absolute bottom-10 left-1/4 w-96 h-96 bg-accentCyan/10 rounded-full blur-3xl"></div>
         </div>
 
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div class="max-w-7xl mx-auto px-4 relative z-10 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                 
-                <!-- Text Details -->
-                <div class="lg:col-span-7 space-y-6 text-center lg:text-right">
-                    
-                    <!-- Freelance Status Badge -->
-                    <div class="inline-flex items-center space-x-2 space-x-reverse px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-semibold">
+                <div class="space-y-6 text-center lg:text-right">
+                    <div class="inline-flex items-center space-x-2 space-x-reverse px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                        <span x-text="t('hero.available')"></span>
+                        <span class="text-sm" x-text="t('hero.available')"></span>
                     </div>
 
-                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
-                        <span class="block text-slate-400 text-2xl lg:text-3xl font-medium mb-2" x-text="t('hero.greeting')"></span>
-                        <span class="block bg-gradient-to-r from-accentBlue to-accentCyan bg-clip-text text-transparent glow-text" x-text="t('hero.name')"></span>
+                    <h1 class="text-5xl lg:text-6xl font-extrabold">
+                        <span class="block text-slate-400 text-2xl mb-2" x-text="t('hero.greeting')"></span>
+                        <span class="block bg-gradient-to-r from-accentBlue to-accentCyan bg-clip-text text-transparent glow-text">نبيل حمادة إبراهيم</span>
                     </h1>
                     
-                    <h2 class="text-xl sm:text-2xl font-semibold text-slate-700 dark:text-slate-300 font-mono" x-text="t('hero.title')">
-                    </h2>
+                    <h2 class="text-2xl font-semibold text-slate-700 dark:text-slate-300">Full Stack Web Developer <span class="text-accentCyan">(Laravel)</span></h2>
 
-                    <p class="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed" x-text="t('hero.description')">
-                    </p>
+                    <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto lg:mx-0" x-text="t('hero.description')"></p>
 
-                    <!-- CTAs -->
-                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 no-print">
-                        <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-accentBlue to-accentCyan text-white font-bold text-center shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all transform hover:scale-105">
-                            <i class="fa-solid fa-arrow-left" :class="currentLang === 'ar' ? 'mr-2' : 'ml-2'"></i>
-                            <span x-text="t('hero.viewProjects')"></span>
-                        </a>
-                        <button @click="window.print()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white dark:bg-darkCard text-slate-700 dark:text-white font-bold text-center border border-slate-300 dark:border-slate-700 hover:border-accentCyan transition-colors flex items-center justify-center gap-2">
-                            <i class="fa-solid fa-file-pdf text-rose-500 text-lg"></i>
-                            <span x-text="t('hero.downloadCV')"></span>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start pt-4">
+                        <a href="#contact" class="px-8 py-4 rounded-xl bg-gradient-to-r from-accentBlue to-accentCyan text-white font-bold shadow-lg hover:shadow-cyan-500/50 transition-all" x-text="t('hero.cta')"></a>
+                        <button @click="window.print()" class="px-8 py-4 rounded-xl bg-white dark:bg-darkCard text-slate-700 dark:text-white font-bold border border-slate-300 dark:border-slate-700 hover:border-accentCyan transition-colors">
+                            <i class="fa-solid fa-file-pdf text-rose-500"></i> PDF
                         </button>
-                    </div>
-
-                    <!-- Direct File Download CTA -->
-                    <div class="pt-2 no-print flex justify-center lg:justify-start">
-                        <button @click="downloadSelf()" class="text-xs text-accentCyan hover:underline font-mono flex items-center space-x-1.5 space-x-reverse">
-                            <i class="fa-solid fa-download"></i>
-                            <span x-text="t('hero.downloadHTML')"></span>
-                        </button>
-                    </div>
-
-                    <!-- Tech Tags -->
-                    <div class="pt-6">
-                        <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-3" x-text="t('hero.technologies')"></p>
-                        <div class="flex flex-wrap justify-center lg:justify-start gap-2.5 font-mono text-xs">
-                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Laravel 11</span>
-                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Livewire</span>
-                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Tailwind CSS</span>
-                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">MySQL</span>
-                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">BigBlueButton API</span>
-                        </div>
                     </div>
                 </div>
 
-                <!-- Code Card -->
-                <div class="lg:col-span-5 relative">
-                    <div class="relative z-10 p-6 rounded-2xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-darkCard dark:to-darkBg border border-slate-300 dark:border-slate-800 shadow-2xl">
-                        
-                        <div class="flex items-center justify-between pb-4 border-b border-slate-300 dark:border-slate-800 mb-4">
-                            <div class="flex items-center space-x-2 space-x-reverse">
+                <div class="relative hidden lg:block">
+                    <div class="p-6 rounded-2xl bg-slate-100 dark:bg-darkCard border border-slate-300 dark:border-slate-800">
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-300 dark:border-slate-700 mb-4">
+                            <div class="flex space-x-2">
                                 <span class="w-3 h-3 rounded-full bg-rose-500"></span>
                                 <span class="w-3 h-3 rounded-full bg-amber-400"></span>
                                 <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
                             </div>
-                            <span class="text-xs text-slate-400 font-mono">NabilHamada.php</span>
+                            <span class="text-xs text-slate-400 font-mono">Code.php</span>
                         </div>
-
-                        <div class="font-mono text-xs space-y-2 text-left" dir="ltr">
-                            <p class="text-indigo-400"><span class="text-pink-400">namespace</span> App\Developer;</p>
-                            <p class="text-slate-500">// 4+ years of building web architecture</p>
-                            <p class="text-purple-400"><span class="text-pink-400">class</span> <span class="text-blue-400">LaravelSpecialist</span> <span class="text-pink-400">extends</span> <span class="text-slate-400">Developer</span></p>
-                            <p class="text-slate-400 pl-4"><span class="text-pink-400">public</span> <span class="text-amber-400">$skills</span> = [</p>
-                            <p class="text-emerald-400 pl-8">'Laravel', 'Livewire', 'Tailwind', 'APIs'</p>
-                            <p class="text-slate-400 pl-4">];</p>
+                        <div class="font-mono text-sm space-y-1 text-slate-600 dark:text-slate-400">
+                            <p><span class="text-pink-400">class</span> <span class="text-blue-400">Developer</span> {</p>
+                            <p class="pl-4"><span class="text-amber-400">$experience</span> = <span class="text-emerald-400">4+ years</span>;</p>
+                            <p class="pl-4"><span class="text-amber-400">$skills</span> = [<span class="text-cyan-400">'Laravel', 'MySQL', 'Tailwind'</span>];</p>
+                            <p>}</p>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-slate-300 dark:border-slate-800 text-center">
-                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
-                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">+4</span>
-                                <span class="text-[10px] text-slate-500 uppercase font-semibold">سنوات</span>
-                            </div>
-                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
-                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">+15</span>
-                                <span class="text-[10px] text-slate-500 uppercase font-semibold">مشاريع</span>
-                            </div>
-                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
-                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">25%</span>
-                                <span class="text-[10px] text-slate-500 uppercase font-semibold">تحسين</span>
-                            </div>
-                        </div>
-
                     </div>
                 </div>
 
@@ -688,285 +141,244 @@ class InventoryController extends Controller
     </section>
 
     <!-- About Section -->
-    <section id="about" class="py-20 bg-slate-100 dark:bg-darkBg/60 border-t border-slate-200 dark:border-slate-800/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-                
-                <div class="lg:col-span-5 flex justify-center">
-                    <div class="relative w-72 h-72 sm:w-80 sm:h-80 rounded-2xl bg-gradient-to-tr from-accentBlue to-accentCyan p-1">
-                        <div class="w-full h-full bg-slate-50 dark:bg-darkBg rounded-2xl flex flex-col justify-center items-center p-6 text-center space-y-4">
-                            <svg class="w-24 h-24 text-accentCyan" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                            </svg>
-                            <div>
-                                <h3 class="font-bold text-xl">نبيل حمادة إبراهيم</h3>
-                                <p class="text-sm text-slate-500 dark:text-slate-400">Full Stack Web Developer</p>
-                            </div>
-                            <div class="flex space-x-3 space-x-reverse text-slate-400 text-lg no-print">
-                                <a href="https://github.com/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-github"></i></a>
-                                <a href="https://linkedin.com/in/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-linkedin"></i></a>
-                                <a href="mailto:Nabilhamada421@gmail.com" class="hover:text-accentCyan transition-colors"><i class="fa-solid fa-envelope"></i></a>
-                            </div>
-                        </div>
-                    </div>
+    <section id="about" class="py-20 bg-slate-100 dark:bg-darkBg/60">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="max-w-3xl mx-auto space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-4xl font-bold" x-text="t('about.title')"></h2>
+                    <p class="text-lg text-slate-600 dark:text-slate-400" x-text="t('about.description')"></p>
                 </div>
 
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="space-y-2">
-                        <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase" x-text="t('about.title')"></span>
-                        <h2 class="text-3xl font-bold" x-text="t('about.heading')"></h2>
+                <div class="grid md:grid-cols-2 gap-6 pt-6">
+                    <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-code text-3xl text-accentCyan mb-3"></i>
+                        <h3 class="font-bold text-xl mb-2" x-text="t('about.feature1')"></h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" x-text="t('about.feature1_desc')"></p>
                     </div>
                     
-                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg" x-text="t('about.text1')">
-                    </p>
+                    <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-database text-3xl text-accentCyan mb-3"></i>
+                        <h3 class="font-bold text-xl mb-2" x-text="t('about.feature2')"></h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" x-text="t('about.feature2_desc')"></p>
+                    </div>
 
-                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg" x-text="t('about.text2')">
-                    </p>
+                    <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-server text-3xl text-accentCyan mb-3"></i>
+                        <h3 class="font-bold text-xl mb-2" x-text="t('about.feature3')"></h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" x-text="t('about.feature3_desc')"></p>
+                    </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                        <div class="flex items-start space-x-3 space-x-reverse">
-                            <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-circle-check"></i></span>
-                            <div>
-                                <h4 class="font-semibold text-slate-800 dark:text-white" x-text="t('about.feature1')"></h4>
-                                <p class="text-sm text-slate-500" x-text="t('about.feature1_desc')"></p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3 space-x-reverse">
-                            <span class="p-2 rounded-lg bg-indigo-500/10 text-indigo-500"><i class="fa-solid fa-database"></i></span>
-                            <div>
-                                <h4 class="font-semibold text-slate-800 dark:text-white" x-text="t('about.feature2')"></h4>
-                                <p class="text-sm text-slate-500" x-text="t('about.feature2_desc')"></p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3 space-x-reverse">
-                            <span class="p-2 rounded-lg bg-cyan-500/10 text-cyan-500"><i class="fa-solid fa-cloud-arrow-up"></i></span>
-                            <div>
-                                <h4 class="font-semibold text-slate-800 dark:text-white" x-text="t('about.feature3')"></h4>
-                                <p class="text-sm text-slate-500" x-text="t('about.feature3_desc')"></p>
-                            </div>
-                        </div>
-                        <div class="flex items-start space-x-3 space-x-reverse">
-                            <span class="p-2 rounded-lg bg-rose-500/10 text-rose-500"><i class="fa-solid fa-users"></i></span>
-                            <div>
-                                <h4 class="font-semibold text-slate-800 dark:text-white" x-text="t('about.feature4')"></h4>
-                                <p class="text-sm text-slate-500" x-text="t('about.feature4_desc')"></p>
-                            </div>
-                        </div>
+                    <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                        <i class="fa-solid fa-users text-3xl text-accentCyan mb-3"></i>
+                        <h3 class="font-bold text-xl mb-2" x-text="t('about.feature4')"></h3>
+                        <p class="text-slate-600 dark:text-slate-400 text-sm" x-text="t('about.feature4_desc')"></p>
                     </div>
                 </div>
-
             </div>
         </div>
     </section>
 
     <!-- Skills Section -->
     <section id="skills" class="py-20">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
-                <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase" x-text="t('skills.title')"></span>
-                <h2 class="text-3xl sm:text-4xl font-bold" x-text="t('skills.heading')"></h2>
-                <p class="text-slate-600 dark:text-slate-400" x-text="t('skills.description')"></p>
-            </div>
+        <div class="max-w-7xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16" x-text="t('skills.title')"></h2>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                
-                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
-                    <div class="w-12 h-12 rounded-xl bg-accentBlue/10 text-accentBlue flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-server"></i>
-                    </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentCyan transition-all">
                     <h3 class="font-bold text-lg mb-4" x-text="t('skills.backend')"></h3>
-                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Laravel (PHP)</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>MVC Architecture</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>RESTful APIs</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Multi-Guard Auth</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>OOP & Clean Code</span></li>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Laravel & PHP</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> RESTful APIs</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> OOP & Design Patterns</li>
                     </ul>
                 </div>
 
-                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
-                    <div class="w-12 h-12 rounded-xl bg-accentCyan/10 text-accentCyan flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-code"></i>
-                    </div>
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentCyan transition-all">
                     <h3 class="font-bold text-lg mb-4" x-text="t('skills.frontend')"></h3>
-                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Livewire</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Tailwind CSS</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>JavaScript & Alpine.js</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>jQuery & AJAX</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Figma/PSD to HTML</span></li>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Tailwind CSS</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Alpine.js</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> JavaScript</li>
                     </ul>
                 </div>
 
-                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-database"></i>
-                    </div>
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentCyan transition-all">
                     <h3 class="font-bold text-lg mb-4" x-text="t('skills.database')"></h3>
-                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>MySQL & SQL Expert</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Relational DB Design</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Query Optimization</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Ubuntu Server & Deploy</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>DNS & Server Mgmt</span></li>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> MySQL</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Query Optimization</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> DB Design</li>
                     </ul>
                 </div>
 
-                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
-                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xl mb-6">
-                        <i class="fa-solid fa-puzzle-piece"></i>
-                    </div>
-                    <h3 class="font-bold text-lg mb-4" x-text="t('skills.integration')"></h3>
-                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>BigBlueButton API</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Zoom Meeting API</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Apple Pay Integration</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Multi-Currency Gateways</span></li>
-                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Git & GitHub</span></li>
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentCyan transition-all">
+                    <h3 class="font-bold text-lg mb-4" x-text="t('skills.devops')"></h3>
+                    <ul class="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Ubuntu Server</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> DNS & SSL</li>
+                        <li><i class="fa-solid fa-check text-accentCyan"></i> Git & GitHub</li>
                     </ul>
                 </div>
-
-            </div>
-
-        </div>
-    </section>
-
-    <!-- Terminal Section -->
-    <section id="terminal" class="py-20 bg-slate-900 text-white relative no-print">
-        <div class="absolute inset-0 opacity-10">
-            <div class="absolute inset-0 bg-[linear-gradient(to_right,#00d4ff20_1px,transparent_1px),linear-gradient(to_bottom,#00d4ff20_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
-        </div>
-
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div class="text-center mb-10 space-y-3">
-                <span class="text-accentCyan font-mono font-bold text-sm uppercase tracking-wider">&lt; interactive_terminal &gt;</span>
-                <h2 class="text-3xl font-bold font-mono" x-text="t('terminal.title')"></h2>
-                <p class="text-slate-400 text-sm max-w-lg mx-auto" x-text="t('terminal.description')"></p>
-            </div>
-
-            <div class="rounded-xl border border-slate-700 bg-[#0F172A] shadow-2xl overflow-hidden glow-cyan">
-                
-                <div class="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
-                    <div class="flex items-center space-x-2 space-x-reverse">
-                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
-                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
-                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                    </div>
-                    <span class="text-xs text-slate-400 font-mono">nabil@laravel-system-api: ~</span>
-                    <span class="w-4"></span>
-                </div>
-
-                <div id="terminal-body" class="p-6 h-72 overflow-y-auto font-mono text-sm space-y-3 text-left leading-relaxed" dir="ltr">
-                    <template x-for="log in terminalLogs">
-                        <div>
-                            <template x-if="log.type === 'input'">
-                                <p class="text-white font-semibold" x-text="log.text"></p>
-                            </template>
-                            <template x-if="log.type === 'system'">
-                                <p class="text-slate-500" x-text="log.text"></p>
-                            </template>
-                            <template x-if="log.type === 'output'">
-                                <pre class="text-accentCyan whitespace-pre-wrap font-mono" x-text="log.text"></pre>
-                            </template>
-                        </div>
-                    </template>
-                </div>
-
-                <div class="flex items-center px-4 py-3 bg-slate-950 border-t border-slate-800">
-                    <span class="text-emerald-400 font-mono mr-2 font-bold select-none">nabil@guest:~$</span>
-                    <input type="text" 
-                           x-model="terminalCommand" 
-                           @keydown.enter="executeTerminal()"
-                           :placeholder="t('terminal.placeholder')"
-                           class="flex-1 bg-transparent border-none outline-none focus:ring-0 text-white font-mono text-sm"
-                           dir="ltr">
-                    <button @click="executeTerminal()" class="ml-2 text-accentCyan hover:text-white transition-colors">
-                        <i class="fa-solid fa-play"></i>
-                    </button>
-                </div>
-
-            </div>
-
-            <div class="mt-4 flex flex-wrap justify-center gap-2">
-                <span class="text-xs text-slate-500 self-center" x-text="t('terminal.quickCommands')"></span>
-                <button @click="terminalCommand = 'about'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">about</button>
-                <button @click="terminalCommand = 'skills'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">skills</button>
-                <button @click="terminalCommand = 'projects'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">projects</button>
-                <button @click="terminalCommand = 'experience'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">experience</button>
             </div>
         </div>
     </section>
 
     <!-- Experience Section -->
-    <section id="experience" class="py-20 bg-slate-50 dark:bg-darkBg/30">
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-            
-            <div class="text-center mb-16 space-y-3">
-                <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase" x-text="t('exp.timeline')"></span>
-                <h2 class="text-3xl font-bold" x-text="t('exp.heading')"></h2>
-                <p class="text-slate-600 dark:text-slate-400" x-text="t('exp.description')"></p>
-            </div>
+    <section id="experience" class="py-20 bg-slate-100 dark:bg-darkBg/60">
+        <div class="max-w-5xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-16" x-text="t('exp.title')"></h2>
 
-            <div class="relative border-r-2 border-slate-200 dark:border-slate-800 mr-4 md:mr-32 space-y-12">
-                
-                <div class="relative">
-                    <div class="absolute -right-[9px] top-1.5 w-4 h-4 rounded-full bg-accentCyan border-4 border-slate-50 dark:border-darkBg glow-cyan"></div>
-                    
-                    <div class="mr-6 md:mr-10 p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 hover:shadow-lg transition-all">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                            <div>
-                                <h3 class="font-bold text-xl text-slate-800 dark:text-white" x-text="t('exp.freelance')"></h3>
-                                <p class="text-sm font-semibold text-accentBlue dark:text-accentCyan" x-text="t('exp.remote')"></p>
-                            </div>
-                            <span class="mt-2 md:mt-0 px-3 py-1 text-xs font-bold rounded-full bg-indigo-500/10 text-indigo-500 dark:text-accentCyan self-start" x-text="t('exp.current')"></span>
+            <div class="space-y-8">
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-xl" x-text="t('exp.freelance')"></h3>
+                            <p class="text-sm text-accentCyan font-semibold" x-text="t('exp.remote')"></p>
                         </div>
-                        
-                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4" x-text="t('exp.freelance_desc')">
-                        </p>
-
-                        <ul class="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Building & optimizing database architecture</span></li>
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Developing pixel-perfect UIs with Tailwind CSS</span></li>
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Managing site deployment & server configuration</span></li>
-                        </ul>
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold" x-text="t('exp.date1')"></span>
                     </div>
+                    <p class="text-slate-600 dark:text-slate-400" x-text="t('exp.desc1')"></p>
                 </div>
 
-                <div class="relative">
-                    <div class="absolute -right-[9px] top-1.5 w-4 h-4 rounded-full bg-accentBlue border-4 border-slate-50 dark:border-darkBg"></div>
-                    
-                    <div class="mr-6 md:mr-10 p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 hover:shadow-lg transition-all">
-                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                            <div>
-                                <h3 class="font-bold text-xl text-slate-800 dark:text-white" x-text="t('exp.backend_dev')"></h3>
-                                <p class="text-sm font-semibold text-accentBlue dark:text-accentCyan" x-text="t('exp.comma')"></p>
-                            </div>
-                            <span class="mt-2 md:mt-0 px-3 py-1 text-xs font-bold rounded-full bg-indigo-500/10 text-indigo-500 dark:text-accentCyan self-start" x-text="t('exp.comma_date')"></span>
+                <div class="p-6 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="font-bold text-xl" x-text="t('exp.backend')"></h3>
+                            <p class="text-sm text-accentCyan font-semibold" x-text="t('exp.company')"></p>
                         </div>
-                        
-                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4" x-text="t('exp.comma_desc')">
-                        </p>
-
-                        <ul class="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Led 4-member development team</span></li>
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Designed & tested enterprise applications</span></li>
-                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>Implemented Agile & code review processes</span></li>
-                        </ul>
+                        <span class="px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-500 text-xs font-semibold" x-text="t('exp.date2')"></span>
                     </div>
+                    <p class="text-slate-600 dark:text-slate-400" x-text="t('exp.desc2')"></p>
                 </div>
-
             </div>
+        </div>
+    </section>
 
+    <!-- Contact Section -->
+    <section id="contact" class="py-20">
+        <div class="max-w-2xl mx-auto px-4">
+            <h2 class="text-4xl font-bold text-center mb-6" x-text="t('contact.title')"></h2>
+            <p class="text-center text-slate-600 dark:text-slate-400 mb-12" x-text="t('contact.description')"></p>
+
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="https://github.com/nabil7amada" target="_blank" class="px-6 py-3 rounded-lg bg-slate-800 dark:bg-darkCard text-white hover:bg-accentBlue transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-github"></i> GitHub
+                </a>
+                <a href="https://linkedin.com/in/nabil7amada" target="_blank" class="px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-brands fa-linkedin"></i> LinkedIn
+                </a>
+                <a href="mailto:Nabilhamada421@gmail.com" class="px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-envelope"></i> Email
+                </a>
+            </div>
         </div>
     </section>
 
     <!-- Footer -->
     <footer class="py-8 bg-slate-100 dark:bg-darkBg border-t border-slate-200 dark:border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <p class="text-slate-600 dark:text-slate-400 text-sm">© 2024 Nabil Hamada. All rights reserved. | جميع الحقوق محفوظة.</p>
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-600 dark:text-slate-400 text-sm">
+            <p>© 2024 Nabil Hamada. All rights reserved. | جميع الحقوق محفوظة</p>
         </div>
     </footer>
+
+    <script>
+        function appData() {
+            return {
+                darkMode: localStorage.getItem('darkMode') !== 'false',
+                lang: localStorage.getItem('lang') || 'ar',
+                
+                translations: {
+                    ar: {
+                        'nav.about': 'عني',
+                        'nav.skills': 'المهارات',
+                        'nav.experience': 'الخبرة',
+                        'nav.contact': 'اتصل بي',
+                        'hero.available': 'متاح للمشاريع والعمل الفوري',
+                        'hero.greeting': 'أهلاً بك، أنا',
+                        'hero.description': 'مطوّر ويب متكامل بخبرة تزيد عن 4 سنوات متخصص في بناء تطبيقات قوية مع Laravel و Livewire.',
+                        'hero.cta': 'ابدأ معي الآن',
+                        'about.title': 'من أنا؟',
+                        'about.description': 'مطور ويب متكامل متخصص في بناء الحلول الرقمية المتقدمة',
+                        'about.feature1': 'تطوير فوري',
+                        'about.feature1_desc': 'تحويل التصاميم إلى واجهات حية بسرعة واحترافية',
+                        'about.feature2': 'تحسين الأداء',
+                        'about.feature2_desc': 'تسريع قواعد البيانات وتحسين الاستعلامات',
+                        'about.feature3': 'إدارة السيرفرات',
+                        'about.feature3_desc': 'إدارة الخوادم وتهيئة DNS و SSL',
+                        'about.feature4': 'قيادة الفرق',
+                        'about.feature4_desc': 'قيادة فرق برمجية متعددة بكفاءة',
+                        'skills.title': 'المهارات التقنية',
+                        'skills.backend': 'Backend Development',
+                        'skills.frontend': 'Frontend Development',
+                        'skills.database': 'Databases',
+                        'skills.devops': 'DevOps & Servers',
+                        'exp.title': 'الخبرة العملية',
+                        'exp.freelance': 'مطوّر ويب مستقل (Full Stack)',
+                        'exp.remote': 'عمل حر عالمي',
+                        'exp.date1': '2021 - الحالي',
+                        'exp.desc1': 'تطوير تطبيقات ويب متقدمة للعملاء العالميين مع التركيز على الجودة والأداء',
+                        'exp.backend': 'Backend Web Developer & Team Lead',
+                        'exp.company': 'Comma Codes Group - القاهرة',
+                        'exp.date2': '2022 - 2023',
+                        'exp.desc2': 'قيادة فريق تطوير مكون من 4 مهندسين لتطوير مشاريع عملاقة',
+                        'contact.title': 'تواصل معي',
+                        'contact.description': 'متاح دائماً للتواصل والتعاون في مشاريع جديدة',
+                    },
+                    en: {
+                        'nav.about': 'About',
+                        'nav.skills': 'Skills',
+                        'nav.experience': 'Experience',
+                        'nav.contact': 'Contact',
+                        'hero.available': 'Available for projects & freelance work',
+                        'hero.greeting': 'Hello, I\'m',
+                        'hero.description': 'Full Stack Web Developer with 4+ years experience specializing in building robust applications with Laravel and Livewire.',
+                        'hero.cta': 'Get In Touch',
+                        'about.title': 'About Me',
+                        'about.description': 'Full Stack Web Developer specializing in advanced digital solutions',
+                        'about.feature1': 'Fast Development',
+                        'about.feature1_desc': 'Converting designs to live interfaces quickly and professionally',
+                        'about.feature2': 'Performance',
+                        'about.feature2_desc': 'Accelerating databases and optimizing queries',
+                        'about.feature3': 'Server Management',
+                        'about.feature3_desc': 'Managing servers and configuring DNS & SSL',
+                        'about.feature4': 'Team Leadership',
+                        'about.feature4_desc': 'Leading multiple development teams efficiently',
+                        'skills.title': 'Technical Skills',
+                        'skills.backend': 'Backend Development',
+                        'skills.frontend': 'Frontend Development',
+                        'skills.database': 'Databases',
+                        'skills.devops': 'DevOps & Servers',
+                        'exp.title': 'Professional Experience',
+                        'exp.freelance': 'Freelance Web Developer (Full Stack)',
+                        'exp.remote': 'Global Freelance',
+                        'exp.date1': '2021 - Present',
+                        'exp.desc1': 'Developing advanced web applications for international clients with focus on quality and performance',
+                        'exp.backend': 'Backend Web Developer & Team Lead',
+                        'exp.company': 'Comma Codes Group - Cairo',
+                        'exp.date2': '2022 - 2023',
+                        'exp.desc2': 'Leading a development team of 4 engineers to develop large-scale projects',
+                        'contact.title': 'Get In Touch',
+                        'contact.description': 'Always available for communication and collaboration on new projects',
+                    }
+                },
+
+                t(key) {
+                    return this.translations[this.lang]?.[key] || key;
+                },
+
+                updateDir() {
+                    document.documentElement.lang = this.lang;
+                    document.documentElement.dir = this.lang === 'ar' ? 'rtl' : 'ltr';
+                    document.documentElement.setAttribute('dir', this.lang === 'ar' ? 'rtl' : 'ltr');
+                },
+
+                init() {
+                    this.updateDir();
+                    this.$watch('darkMode', (val) => localStorage.setItem('darkMode', val));
+                }
+            }
+        }
+    </script>
 
 </body>
 </html>
