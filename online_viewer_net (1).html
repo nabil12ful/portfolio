@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" x-data="{ 
+    darkMode: true, 
+    mobileMenuOpen: false, 
+    activeTab: 'all',
+    terminalCommand: '',
+    terminalHistory: [],
+    terminalLogs: [
+        { text: 'نظام تشغيل نبيل حمادة الإصدار v4.4.0', type: 'system' },
+        { text: 'تم تهيئة قاعدة البيانات بنجاح. اكتب &quot;help&quot; أو &quot;php artisan list&quot; للتفاعل المباشر.', type: 'system' }
+    ],
+    selectedProjectId: null,
+    formSubmitted: false,
+    formData: { name: '', email: '', subject: '', message: '' },
+    isSending: false,
+    
+    // دالة تتيح تحميل هذا الملف البرمجي نفسه بصيغة index.html مباشرة من المتصفح
+    downloadSelf() {
+        try {
+            const htmlContent = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'index.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        } catch (e) {
+            console.error('فشل تحميل الملف التفاعلي:', e);
+        }
+    },
+
+    // قاعدة بيانات المشاريع الحقيقية مع المعماريات البرمجية الخاصة بكل نظام
+    projects: [
+        {
+            id: 'zawaya',
+            title: 'Zawaya Platform',
+            category: 'elearning',
+            badge: 'منصة بث مباشر تعليمية',
+            color: 'from-cyan-600 to-blue-600',
+            shortDesc: 'منصة بث مباشر تعليمية سعودية تدعم آلاف الطلاب المتزامنين في وقت واحد مع تكامل بوابة دفع Apple Pay ونظام جدولة دقيق.',
+            techs: ['Laravel', 'MySQL', 'BigBlueButton API', 'Apple Pay', 'Tailwind CSS'],
+            features: [
+                'تحويل وتصميم واجهات الاستخدام بيكسل-بيرفكت متجاوبة ومتناسقة بالكامل عبر Tailwind CSS.',
+                'ربط وتأمين مخدّم BigBlueButton (BBB) API لتوليد غرف بث حي آمنة وتوزيع الصلاحيات بين المعلم والطالب.',
+                'برمجة كود فحص ذكي وخلفي يمنع إمكانية دخول الطلاب للجلسة قبل موعد البث الفعلي بـ 5 دقائق لحماية السيرفر من الاستهلاك العشوائي.',
+                'تكامل بوابات الدفع الإلكترونية السريعة مع التركيز على Apple Pay التي تحصد النصيب الأكبر من السوق السعودي.'
+            ],
+            flow: {
+                from: 'طلب انضمام الطالب',
+                guard: 'التحقق من الاشتراك والوقت (StartsAt - 5m)',
+                service: 'BBB Secure Checksum API',
+                db: 'جلسة البث المباشر (Active Session)'
+            },
+            code: `namespace App\\Http\\Controllers;
+
+use App\\Models\\Lesson;
+use App\\Services\\BigBlueButtonService;
+use Illuminate\\Http\\JsonResponse;
+
+class LessonController extends Controller
+{
+    /**
+     * انضمام آمن إلى جلسات البث قبل البدء بـ 5 دقائق فقط لمنع استهلاك الخادم تلقائياً.
+     */
+    public function joinSession(Lesson $lesson): JsonResponse
+    {
+        // التحقق من صلاحية الطالب لمشاهدة الدرس الحالي
+        $this->authorize('view', $lesson);
+
+        // التحقق من أن تفعيل الزر متاح فقط قبل البدء بـ 5 دقائق
+        if ($lesson->starts_at->subMinutes(5)->isFuture()) {
+            return response()->json([
+                'status' => 'locked',
+                'message' => 'عذراً، تفعيل زر الدخول متاح فقط قبل موعد الحصة بـ 5 دقائق.'
+            ], 403);
+        }
+
+        // توليد رابط دخول آمن ومشفر عبر خادم الـ API لمنع التزوير والتسلل
+        $joinUrl = BigBlueButtonService::generateSecureJoinUrl([
+            'meeting_id' => 'session_unit_' . $lesson->id,
+            'meeting_name' => $lesson->title,
+            'user_name' => auth()->user()->name,
+            'role' => auth()->user()->is_teacher ? 'moderator' : 'viewer',
+            'redirect_back' => route('lessons.completed', $lesson->id)
+        ]);
+
+        return response()->json([
+            'status' => 'active',
+            'join_url' => $joinUrl
+        ]);
+    }
+}`
+        },
+        {
+            id: 'modareskom',
+            title: 'Modareskom',
+            category: 'elearning',
+            badge: 'سوق تعليمي متعدد الموردين',
+            color: 'from-purple-600 to-indigo-600',
+            shortDesc: 'سوق تعليمي يربط المدرسين بالطلاب عبر الوطن العربي مع نظام حجز معقد، عملات متعددة وتوليد غرف فصول افتراضية تلقائياً.',
+            techs: ['Laravel', 'MySQL', 'Multi-Currency', 'Livewire', 'API integration'],
+            features: [
+                'هندسة قاعدة بيانات مرنة لتخزين جداول المواعيد تدعم أكثر من 100 موعد يومي متاح لكل مدرس مع حمايتها من تعارض الحجوزات.',
+                'تحويل تلقائي لأسعار الحصص والخدمات اعتماداً على العملة المحلية للطالب وبوابات الدفع المناسبة لبلده.',
+                'أتمتة عملية فتح غرف الفصول الافتراضية عبر خادم BBB وتخصيص إشعار فوري للطرفين لتأكيد الحجز.',
+                'تصميم لوحة تحكم ذكية للمعلمين لعرض نسب المبيعات، الطلبات المعلقة، وإحصائيات الحضور والغياب للطلاب.'
+            ],
+            flow: {
+                from: 'اختيار المعلم والموعد',
+                guard: 'Pessimistic Locking لمنع الحجز المزدوج',
+                service: 'توليد الغرفة الافتراضية + الدفع متعدد العملات',
+                db: 'تأكيد الحجز وجدولة الإشعارات'
+            },
+            code: `namespace App\\Http\\Controllers;
+
+use App\\Models\\TimeSlot;
+use Illuminate\\Support\Facades\\DB;
+use App\\Services\\ExchangeRateService;
+
+class BookingController extends Controller
+{
+    /**
+     * حجز حصة مباشرة باستخدام تقنية القفل السلبي لمنع تعارض الحجوزات المتزامنة.
+     */
+    public function bookSlot(TimeSlot $slot)
+    {
+        return DB::transaction(function () use ($slot) {
+            // قفل السجل في قاعدة البيانات للتحقق الحصري ومنع الحجوزات المتزامنة في نفس اللحظة
+            $lockedSlot = TimeSlot::where('id', $slot->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            if ($lockedSlot->is_booked) {
+                return response()->json(['error' => 'هذه الحصة تم حجزها بالفعل من مستخدم آخر.'], 422);
+            }
+
+            // حساب السعر بناءً على العملة المفضلة للطالب وعمليات التحويل الدولية
+            $basePrice = $lockedSlot->price_tier; 
+            $userCurrency = auth()->user()->preferred_currency;
+            $convertedAmount = ExchangeRateService::convert($basePrice, 'USD', $userCurrency);
+
+            $booking = auth()->user()->bookings()->create([
+                'time_slot_id' => $lockedSlot->id,
+                'amount' => $convertedAmount,
+                'currency' => $userCurrency,
+                'status' => 'pending_payment'
+            ]);
+
+            // تحديث حالة الموعد لمنع أي محاولة حجز أخرى متزامنة
+            $lockedSlot->update(['is_booked' => true]);
+
+            return response()->json(['status' => 'reserved', 'booking_id' => $booking->id]);
+        });
+    }
+}`
+        },
+        {
+            id: 'redshield',
+            title: '9 Red Shield',
+            category: 'systems',
+            badge: 'منظومة إدارة شركات ومشاريع الإطفاء',
+            color: 'from-rose-600 to-rose-950',
+            shortDesc: 'نظام متكامل (ERP) لتسيير وأتمتة شركات الإطفاء ومقاولات مكافحة الحرائق؛ يغطي تتبع عقود الصيانة الموزعة عبر كافة الفروع، توزيع مهام الفرق الميدانية وفنيي الفحص والتركيب، والامتثال الأمني للدفاع المدني.',
+            techs: ['Laravel Core', 'Multi-Branch Design', 'DB Transactions', 'Role Permissions', 'MySQL'],
+            features: [
+                'إدارة وتتبع المشاريع والمنشآت الموزعة عبر الفروع المتعددة بكفاءة عالية ومن شاشة تحكم مركزية.',
+                'أتمتة عقود الصيانة السنوية والدورية لأنظمة إنذار ومكافحة الحرائق وتوليد منبهات ذكية بمواعيد الفحص القادمة.',
+                'إرسال وإسناد الفرق والمهندسين والفنيين الميدانيين لمهام الصيانة، تتبع تقارير الامتثال، وتوثيق استلام التراخيص المعتمدة.',
+                'بناء صلاحيات متعددة تعزل عمليات كل فرع وموظفيه مع تزويد الإدارة العليا بإحصائيات مالية وتشغيلية شاملة.'
+            ],
+            flow: {
+                from: 'تسجيل منشأة أو طلب صيانة جديد',
+                guard: 'فحص صلاحيات الفرع والمستخدم (Multi-Guard)',
+                service: 'إسناد الفرقة الميدانية وتوليد مهام الصيانة الوقائية',
+                db: 'تأسيس العقد المالي وإدراج تقارير الامتثال'
+            },
+            code: `namespace App\\Http\\Controllers;
+
+use App\\Models\\Contract;
+use App\\Models\\Branch;
+use App\\Models\\Employee;
+use Illuminate\\Http\\Request;
+use Illuminate\\Support\Facades\\DB;
+
+class FirefightingContractController extends Controller
+{
+    /**
+     * تسجيل عقد صيانة أو مشروع إطفاء جديد بأمان، وإسناد فرقة فنية مخصصة من فرع الشركة المسؤول.
+     */
+    public function storeContract(Request $request)
+    {
+        $validated = $request->validate([
+            'project_name' => 'required|string|max:255',
+            'branch_id' => 'required|exists:branches,id',
+            'client_email' => 'required|email',
+            'contract_value' => 'required|numeric|min:0',
+            'maintenance_intervals' => 'required|integer|min:1', // بالشهور (صيانة دورية كل 3 شهور مثلاً)
+            'lead_technician_id' => 'required|exists:employees,id'
+        ]);
+
+        // معالجة البيانات من خلال عمليات معزولة لضمان التناسق التام في حال فشل أي خطوة تشغيلية
+        return DB::transaction(function () use ($validated) {
+            
+            // 1. تسجيل تفاصيل العقد والمنشأة المؤمنة تحت الفرع المحدد للشركة بالكامل
+            $contract = Contract::create([
+                'project_name' => $validated['project_name'],
+                'branch_id' => $validated['branch_id'],
+                'client_email' => $validated['client_email'],
+                'value' => $validated['contract_value'],
+                'interval_months' => $validated['maintenance_intervals'],
+                'status' => 'active',
+                'next_inspection_at' => now()->addMonths($validated['maintenance_intervals'])
+            ]);
+
+            // 2. تعيين وإسناد الفرقة الفنية أو مهندس الإشراف المسؤول عن الفحص الميداني
+            $contract->assignedCrew()->create([
+                'employee_id' => $validated['lead_technician_id'],
+                'role' => 'lead_inspector',
+                'assigned_at' => now()
+            ]);
+
+            // 3. كتابة وتوليد سجل الفحص الأولي وسجل التتبع الخاص بالفرع والامتثال الأمني للدفاع المدني
+            $contract->complianceLogs()->create([
+                'action' => 'contract_initiated',
+                'details' => 'تم تأسيس عقد جديد لإطفاء الحرائق وتأمين المنشأة عبر  لفرع رقم: ' . $validated['branch_id']
+            ]);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'تم تسجيل عقد الإطفاء والسلامة الجديد بنجاح، وإسناد فرقة الفحص والتركيب للموقع.',
+                'contract_id' => $contract->id
+            ], 201);
+        });
+    }
+}`
+        },
+        {
+            id: 'elhaffar',
+            title: 'Elhaffar Rig Store',
+            category: 'ecommerce',
+            badge: 'متجر إلكتروني للمعدات الثقيلة',
+            color: 'from-amber-600 to-orange-500',
+            shortDesc: 'متجر إلكتروني عملاق لعرض معدات الحفر الثقيلة مع أنظمة متطورة لإدارة وتتبع الكتالوجات والمخزون الحي والأسعار والطلبات.',
+            techs: ['Laravel Core', 'MySQL Inventory', 'Cart Engine', 'Alpine.js'],
+            features: [
+                'بناء كتالوج منتجات مرن يدعم الفلترة المتقدمة بناء على موديل المعدات، والوزن، والاستخدام الفني للمقاولات الحفرية.',
+                'ربط سلة المشتريات بقاعدة البيانات لضمان تتبع المخزون اللحظي وتنبيه المسؤولين عند وصول مستويات المخازن للحد الأدنى.',
+                'تطوير نظام تحكم خلفي لحساب الشحن الديناميكي للمعدات الثقيلة اعتماداً على الوزن الجغرافي والمسافة.'
+            ],
+            flow: {
+                from: 'إضافة المعدات للسلة والتأكيد',
+                guard: 'فحص كميات المخزون في المستودعات المتاحة',
+                service: 'حساب تكلفة الشحن والوزن الجغرافي للمعدات',
+                db: 'خصم المخزون وتسجيل الفاتورة المعتمدة'
+            },
+            code: `namespace App\\Http\\Controllers;
+
+use App\\Models\\Product;
+use Illuminate\\Support\Facades\\DB;
+
+class InventoryController extends Controller
+{
+    /**
+     * معالجة الدفع والتحقق من الكميات المتوفرة في المستودع قبل إتمام شحن المعدات الثقيلة.
+     */
+    public function checkoutCart()
+    {
+        $cartItems = session()->get('cart', []);
+
+        return DB::transaction(function () use ($cartItems) {
+            foreach ($cartItems as $itemId => $details) {
+                // التحقق الفوري مع قفل السجل لضمان عدم بيع معدة لأكثر من مشترٍ في نفس الوقت
+                $product = Product::where('id', $itemId)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                if ($product->stock < $details['quantity']) {
+                    throw new \\Exception('عذراً، الكمية المطلوبة للمعدات '{$product->name}' غير متوفرة حالياً في المخزن ');
+                }
+
+                // خصم كمية المخزن بأمان وبطريقة آمنة ومعزولة تماماً
+                $product->decrement('stock', $details['quantity']);
+            }
+            
+            return response()->json(['status' => 'success', 'message' => 'تم تسجيل طلب الشراء بنجاح وجاري فحص الشحن للمعدات.']);
+        });
+    }
+}`
+        },
+        {
+            id: 'machon',
+            title: 'Machon Sama Exam System',
+            category: 'systems',
+            badge: 'نظام الاختبارات والتقييم الآلي',
+            color: 'from-emerald-600 to-teal-700',
+            shortDesc: 'نظام متطور لأتمتة الاختبارات الأكاديمية والتقييم الفوري مع ضبط دقيق لعداد وقت المحاولة آلياً لمنع التلاعب وتوليد التقارير الفورية.',
+            techs: ['Laravel Core', 'Automated Grading', 'Time Management', 'JSON Schemas'],
+            features: [
+                'خوارزمية ذكية لمراقبة وحساب المتبقي من وقت الاختبار بشكل حي على السيرفر لضمان دقة الامتحانات ومنع الغش.',
+                'بناء هيكل أسئلة مرن يدعم أنواع متعددة (اختيارات، صح وخطأ، كتابي) باستخدام هياكل JSON Schemas مرنة في قاعدة البيانات.',
+                'أتمتة عملية التصحيح وإصدار الدرجات وإرسال تقرير فوري للطالب والبريد الإلكتروني للإدارة بمجرد إنهاء المحاولة.'
+            ],
+            flow: {
+                from: 'بدء المحاولة الدراسية للاختبار',
+                guard: 'فحص فترات السماحية والمهلة (Grace Period)',
+                service: 'التصحيح التلقائي للأوراق (Auto-Grading Engine)',
+                db: 'تخزين النتائج وحفظ تقرير الإحصائيات'
+            },
+            code: `namespace App\\Http\\Controllers;
+
+use App\\Models\\ExamAttempt;
+use Carbon\\Carbon;
+use Illuminate\\Http\\Request;
+
+class ExamSubmissionController extends Controller
+{
+    /**
+     * استقبال الإجابات وتدقيق التوقيت للتأكد من تسليم ورقة الامتحان قبل فوات المهلة المحددة.
+     */
+    public function submitAttempt(Request $request, ExamAttempt $attempt)
+    {
+        // إضافة 30 ثانية لتلافي زمن تأخير معالجة الشبكة
+        $deadlineWithGrace = $attempt->started_at
+            ->addMinutes($attempt->exam->duration_minutes)
+            ->addSeconds(30);
+
+        if (Carbon::now()->greaterThan($deadlineWithGrace)) {
+            $attempt->update([
+                'status' => 'expired_disqualified',
+                'final_score' => 0
+            ]);
+            return response()->json(['error' => 'انتهى الوقت المحدد للاختبار مسبقاً، تم إلغاء المحاولة.'], 403);
+        }
+
+        // معالجة تصحيح الأسئلة تلقائياً استناداً لمفاتيح الإجابات المحفوظة
+        $score = $attempt->calculateScore($request->input('answers'));
+
+        $attempt->update([
+            'status' => 'completed',
+            'final_score' => $score,
+            'submitted_at' => Carbon::now()
+        ]);
+
+        return response()->json([
+            'status' => 'graded',
+            'score' => $score,
+            'total_score' => $attempt->exam->total_marks
+        ]);
+    }
+}`
+        }
+    ],
+
+    getSelectedProject() {
+        return this.projects.find(p => p.id === this.selectedProjectId) || null;
+    },
+    
+    executeTerminal() {
+        let cmd = this.terminalCommand.trim().toLowerCase();
+        if (!cmd) return;
+        this.terminalHistory.push(this.terminalCommand);
+        this.terminalLogs.push({ text: `nabil_hamada@guest:~$ ${this.terminalCommand}`, type: 'input' });
+        
+        let response = '';
+        if (cmd === 'help' || cmd === 'php artisan help' || cmd === 'php artisan list' || cmd === 'php artisan') {
+            response = 'الأوامر المتاحة:\n  about          - نبذة سريعة عن نبيل حمادة\n  skills         - عرض المهارات البرمجية الأساسية\n  projects       - عرض المشاريع مع الرموز البرمجية\n  experience     - تاريخ الخبرة الحالية والسابقة\n  clear          - تنظيف شاشة التيرمينال';
+        } else if (cmd === 'about' || cmd === 'php artisan about') {
+            response = 'Nabil Hamada Ebrahim:\nمطوّر ويب متكامل (Full Stack Web Developer) بخبرة تزيد عن 4 سنوات، متخصص في بيئة Laravel، وذو مهارات عالية في معمارية قواعد البيانات وأنظمة شركات الإطفاء والسلامة وعقود الصيانة وبوابات الدفع.';
+        } else if (cmd === 'skills' || cmd === 'php artisan skills') {
+            response = 'المهارات:\n- Backend: Laravel, PHP, RESTful APIs, OOP, Multi-Guard\n- Frontend: Livewire, Tailwind CSS, Alpine.js, Ajax\n- Databases: MySQL, Schema Design, Optimization\n- Tools: Ubuntu Server, DNS Management, Git';
+        } else if (cmd === 'projects' || cmd === 'php artisan projects') {
+            response = 'المشاريع الرئيسية:\n1. Zawaya Platform (منصة البث التعليمي المباشر)\n2. Modareskom (سوق المدرسين)\n3. 9 Red Shield (منظومة شركات ومشاريع الإطفاء وفروعها)\n4. Elhaffar Rig Store (إدارة وتتبع المعدات)\nاكتب اسم المشروع لمزيد من التفاصيل والـ Controller البرمجي.';
+        } else if (cmd === 'experience' || cmd === 'php artisan experience') {
+            response = 'الخبرات:\n- Full Stack Developer (Freelancer) | 2021 - Present\n- Backend Web Developer & Team Lead | Comma Codes (2022-2023)';
+        } else if (cmd === 'clear') {
+            this.terminalLogs = [];
+            this.terminalCommand = '';
+            return;
+        } else if (cmd.includes('red shield') || cmd.includes('redshield') || cmd.includes('9 red')) {
+            response = 'مشروع 9 Red Shield:\nنظام ERP متكامل لشركات ومقاولات الإطفاء ومكافحة الحريق. يدعم تنظيم العمليات التشغيلية عبر الفروع المتعددة بالكامل، إدارة عقود الصيانة الدورية وتنبيهاتها، وإسناد وتتبع الفنيين الميدانيين.';
+        } else if (cmd.includes('zawaya')) {
+            response = 'مشروع Zawaya:\nمنصة سعودية رائدة للتعليم المباشر. تم دمج API BigBlueButton لإدارة آلاف الطلاب، وربط بوابات دفع Apple Pay، وتطوير خوارزمية تفعيل الدخول التلقائي قبل البث بخمس دقائق.';
+        } else if (cmd.includes('modareskom')) {
+            response = 'مشروع Modareskom:\nسوق رقمي متعدد البائعين يربط المعلمين بالطلاب. يدعم جدولة مرنة لأكثر من 100 موعد يومي، وعملات متعددة وتوليد غرف الفصول الافتراضية تلقائياً.';
+        } else {
+            response = `Command &quot;${cmd}&quot; not found. Type &quot;help&quot; for options.`;
+        }
+        
+        setTimeout(() => {
+            this.terminalLogs.push({ text: response, type: 'output' });
+            this.$nextTick(() => {
+                let objDiv = document.getElementById('terminal-body');
+                objDiv.scrollTop = objDiv.scrollHeight;
+            });
+        }, 150);
+        
+        this.terminalCommand = '';
+    },
+    
+    submitContactForm() {
+        this.isSending = true;
+        setTimeout(() => {
+            this.isSending = false;
+            this.formSubmitted = true;
+            this.formData = { name: '', email: '', subject: '', message: '' };
+            setTimeout(() => { this.formSubmitted = false; }, 5000);
+        }, 1500);
+    }
+}" :class="{ 'dark': darkMode }">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Nabil Hamada Ebrahim - Full Stack Web Developer & Laravel Specialist Portfolio.">
+    <title>Nabil Hamada | Laravel Specialist & Full-Stack Developer</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#0A1428',
+                        darkCard: '#111E36',
+                        accentCyan: '#00D4FF',
+                        accentBlue: '#0A84FF',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <style>
+        [x-cloak] { display: none !important; }
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0A1428;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00D4FF;
+        }
+        .glow-cyan {
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.35);
+        }
+        .glow-text {
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        /* Print Media Styles to output clean PDF */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            header, footer, #terminal, .no-print, button, .flex-wrap, #contact form, .no-print-btn {
+                display: none !important;
+            }
+            section {
+                padding: 10px 0 !important;
+                page-break-inside: avoid;
+            }
+            .dark {
+                background: white !important;
+                color: black !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-darkBg dark:text-slate-100 transition-colors duration-300 font-sans antialiased selection:bg-cyan-500 selection:text-white">
+
+    <!-- Header & Navigation -->
+    <header class="fixed top-0 w-full z-40 bg-white/80 dark:bg-darkBg/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            
+            <!-- Logo -->
+            <a href="#hero" class="flex items-center space-x-2 space-x-reverse group">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-tr from-accentBlue to-accentCyan flex items-center justify-center shadow-lg transition-transform group-hover:scale-105">
+                    <span class="text-white font-bold text-xl font-mono">N</span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-bold text-lg leading-tight tracking-tight dark:text-white">نبيل حمادة</span>
+                    <span class="text-xs text-slate-500 dark:text-accentCyan font-mono font-semibold">Laravel Specialist</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center space-x-8 space-x-reverse font-medium text-sm">
+                <a href="#about" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">عني</a>
+                <a href="#skills" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">المهارات</a>
+                <a href="#experience" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">الخبرة</a>
+                <a href="#projects" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">أهم المشاريع</a>
+                <a href="#terminal" class="hover:text-accentBlue dark:hover:text-accentCyan font-mono transition-colors">التيرمينال</a>
+                <a href="#contact" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">اتصل بي</a>
+            </nav>
+
+            <!-- Mode Switcher & CTAs -->
+            <div class="hidden md:flex items-center space-x-4 space-x-reverse">
+                <!-- Theme Toggle -->
+                <button @click="darkMode = !darkMode" class="p-2.5 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentBlue dark:hover:text-accentCyan border border-slate-200 dark:border-slate-800 transition-all" title="تبديل الثيم">
+                    <template x-if="!darkMode">
+                        <i class="fa-solid fa-moon text-lg"></i>
+                    </template>
+                    <template x-if="darkMode">
+                        <i class="fa-solid fa-sun text-lg text-amber-400"></i>
+                    </template>
+                </button>
+                
+                <!-- Download HTML Source Code -->
+                <button @click="downloadSelf()" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-darkCard text-slate-700 dark:text-white border border-slate-300 dark:border-slate-850 hover:border-accentCyan transition-all flex items-center space-x-1.5 space-x-reverse" title="تحميل الكود البرمجي للموقع">
+                    <i class="fa-solid fa-download text-accentCyan"></i>
+                    <span>تحميل كود الموقع</span>
+                </button>
+                
+                <a href="#contact" class="px-4 py-2 text-xs font-semibold rounded-lg bg-gradient-to-r from-accentBlue to-accentCyan text-white shadow-md hover:opacity-90 transition-all transform hover:-translate-y-0.5">
+                    توظيف فوري
+                </a>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="flex items-center space-x-3 space-x-reverse md:hidden">
+                <!-- Mobile Theme Toggle -->
+                <button @click="darkMode = !darkMode" class="p-2 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentCyan transition-colors">
+                    <template x-if="!darkMode">
+                        <i class="fa-solid fa-moon"></i>
+                    </template>
+                    <template x-if="darkMode">
+                        <i class="fa-solid fa-sun text-amber-400"></i>
+                    </template>
+                </button>
+                
+                <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-darkCard transition-colors">
+                    <i class="fa-solid fa-bars text-xl" x-show="!mobileMenuOpen"></i>
+                    <i class="fa-solid fa-xmark text-xl" x-show="mobileMenuOpen" x-cloak></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" 
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-2"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             x-transition:leave="transition ease-in duration-100"
+             x-transition:leave-start="opacity-100 translate-y-0"
+             x-transition:leave-end="opacity-0 -translate-y-2"
+             class="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-darkBg px-4 py-3 space-y-2" x-cloak>
+            <a href="#about" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200">عني</a>
+            <a href="#skills" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200">المهارات</a>
+            <a href="#experience" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200">الخبرة</a>
+            <a href="#projects" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200">أهم المشاريع</a>
+            <a href="#terminal" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200 font-mono">التيرمينال</a>
+            <a href="#contact" @click="mobileMenuOpen = false" class="block py-2 px-3 rounded-md hover:bg-slate-100 dark:hover:bg-darkCard text-slate-700 dark:text-slate-200">اتصل بي</a>
+            <div class="pt-2 border-t border-slate-100 dark:border-slate-800 flex flex-col gap-2">
+                <button @click="downloadSelf(); mobileMenuOpen = false" class="w-full text-center py-2 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-700 dark:text-slate-200 text-sm font-semibold flex items-center justify-center space-x-1.5 space-x-reverse">
+                    <i class="fa-solid fa-download text-accentCyan"></i>
+                    <span>تحميل كود الموقع (HTML)</span>
+                </button>
+                <a href="#contact" @click="mobileMenuOpen = false" class="block text-center w-full py-2.5 rounded-lg bg-gradient-to-r from-accentBlue to-accentCyan text-white font-semibold text-sm">
+                    توظيف فوري
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="hero" class="relative pt-32 pb-20 md:py-40 flex items-center overflow-hidden">
+        <!-- Background Gradients -->
+        <div class="absolute inset-0 z-0 opacity-40 dark:opacity-100">
+            <div class="absolute top-20 right-1/4 w-96 h-96 bg-accentBlue/20 rounded-full blur-3xl"></div>
+            <div class="absolute bottom-10 left-1/4 w-[500px] h-[500px] bg-accentCyan/10 rounded-full blur-[120px]"></div>
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#00d4ff0a_1px,transparent_1px),linear-gradient(to_bottom,#00d4ff0a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Text Details -->
+                <div class="lg:col-span-7 space-y-6 text-center lg:text-right">
+                    
+                    <!-- Freelance Status Badge -->
+                    <div class="inline-flex items-center space-x-2 space-x-reverse px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-semibold tracking-wide no-print">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span>متاح للمشاريع والعمل الفوري والتعاقد</span>
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none">
+                        <span class="block text-slate-400 text-2xl lg:text-3xl font-medium mb-2">أهلاً بك، أنا</span>
+                        <span class="block bg-gradient-to-r from-accentBlue to-accentCyan bg-clip-text text-transparent glow-text">نبيل حمادة إبراهيم</span>
+                    </h1>
+                    
+                    <h2 class="text-xl sm:text-2xl font-semibold text-slate-700 dark:text-slate-300 font-mono">
+                        Full Stack Web Developer <span class="text-accentBlue dark:text-accentCyan">(Laravel Specialist)</span>
+                    </h2>
+
+                    <p class="text-slate-600 dark:text-slate-400 text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed">
+                        أبني تطبيقات ويب Scalable ومتطورة تحوّل الأفكار إلى منتجات رقمية ناجحة. أمتلك خبرة تزيد عن 4 سنوات في تطوير معمارية برمجية متكاملة وقواعد بيانات فائقة الكفاءة باستخدام أحدث تكنولوجيات الويب.
+                    </p>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4 no-print">
+                        <a href="#projects" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-accentBlue to-accentCyan text-white font-bold text-center shadow-lg shadow-cyan-500/10 hover:shadow-cyan-500/20 transition-all transform hover:-translate-y-0.5">
+                            عرض أعمالي <i class="fa-solid fa-arrow-left mr-2"></i>
+                        </a>
+                        <button @click="window.print()" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-white dark:bg-darkCard text-slate-700 dark:text-white font-bold text-center border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all flex items-center justify-center space-x-2 space-x-reverse">
+                            <i class="fa-solid fa-file-pdf text-rose-500 text-lg"></i>
+                            <span>تحميل السيرة الذاتية (PDF)</span>
+                        </button>
+                    </div>
+
+                    <!-- Direct File Download CTA for safety -->
+                    <div class="pt-2 no-print flex justify-center lg:justify-start">
+                        <button @click="downloadSelf()" class="text-xs text-accentCyan hover:underline font-mono flex items-center space-x-1.5 space-x-reverse">
+                            <i class="fa-solid fa-download"></i>
+                            <span>تنزيل هذا الملف التفاعلي (index.html) مباشرة لجهازك</span>
+                        </button>
+                    </div>
+
+                    <!-- Tech Tags list -->
+                    <div class="pt-6">
+                        <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider mb-3">أبرز التقنيات التي أعمل بها يومياً</p>
+                        <div class="flex flex-wrap justify-center lg:justify-start gap-2.5 font-mono text-xs">
+                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Laravel 11</span>
+                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Livewire</span>
+                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">Tailwind CSS</span>
+                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">MySQL</span>
+                            <span class="px-2.5 py-1 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-300 dark:border-slate-700">BigBlueButton API</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Graphic Showcase / Interactive Console Preview -->
+                <div class="lg:col-span-5 relative">
+                    <!-- Tech visual card with Live Stats -->
+                    <div class="relative z-10 p-6 rounded-2xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-darkCard dark:to-darkBg border border-slate-300 dark:border-slate-800 shadow-2xl">
+                        
+                        <!-- Header bar of code editor -->
+                        <div class="flex items-center justify-between pb-4 border-b border-slate-300 dark:border-slate-800 mb-4">
+                            <div class="flex items-center space-x-2 space-x-reverse">
+                                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                                <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                            </div>
+                            <span class="text-xs text-slate-400 font-mono">NabilHamada.php</span>
+                        </div>
+
+                        <!-- Mini Code Simulation -->
+                        <div class="font-mono text-xs space-y-2 text-left" dir="ltr">
+                            <p class="text-indigo-400"><span class="text-pink-400">namespace</span> App\Developer;</p>
+                            <p class="text-slate-500">// 4+ years of building web architecture</p>
+                            <p class="text-purple-400"><span class="text-pink-400">class</span> <span class="text-blue-400">LaravelSpecialist</span> <span class="text-pink-400">extends</span> <span class="text-blue-400">FullStackDeveloper</span> {</p>
+                            <p class="text-slate-400 pl-4"><span class="text-pink-400">public</span> <span class="text-amber-400">$skills</span> = [</p>
+                            <p class="text-emerald-400 pl-8">'Laravel', 'Livewire', 'Tailwind', 'APIs'</p>
+                            <p class="text-slate-400 pl-4">];</p>
+                            <p class="text-slate-400 pl-4"><span class="text-pink-400">public function</span> <span class="text-amber-400">getExperience</span>() {</p>
+                            <p class="text-slate-400 pl-8"><span class="text-pink-400">return</span> [</p>
+                            <p class="text-cyan-400 pl-12">'eLearning' => <span class="text-amber-400">'Zawaya (BigBlueButton API)'</span>,</p>
+                            <p class="text-cyan-400 pl-12">'ERP Systems' => <span class="text-amber-400">'9 Red Shield Firefighting ERP'</span>,</p>
+                            <p class="text-cyan-400 pl-12">'optimization' => <span class="text-amber-400">'MySQL Query speed +25%'</span></p>
+                            <p class="text-slate-400 pl-8">];</p>
+                            <p class="text-slate-400 pl-4">}</p>
+                            <p class="text-purple-400">}</p>
+                        </div>
+
+                        <!-- Stats overlay grid inside -->
+                        <div class="grid grid-cols-3 gap-3 pt-6 mt-6 border-t border-slate-300 dark:border-slate-800 text-center">
+                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
+                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">+4</span>
+                                <span class="text-[10px] text-slate-500 uppercase font-semibold">سنوات الخبرة</span>
+                            </div>
+                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
+                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">+15</span>
+                                <span class="text-[10px] text-slate-500 uppercase font-semibold">مشاريع ناجحة</span>
+                            </div>
+                            <div class="p-3 bg-white dark:bg-darkBg/50 rounded-lg border border-slate-200 dark:border-slate-800">
+                                <span class="block text-2xl lg:text-3xl font-extrabold text-accentBlue dark:text-accentCyan">25%</span>
+                                <span class="text-[10px] text-slate-500 uppercase font-semibold">تحسين سرعة قواعد البيانات</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- About Me Section -->
+    <section id="about" class="py-20 bg-slate-100 dark:bg-darkBg/60 border-t border-slate-200 dark:border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- About Side Graphic or Photo -->
+                <div class="lg:col-span-5 flex justify-center">
+                    <div class="relative w-72 h-72 sm:w-80 sm:h-80 rounded-2xl bg-gradient-to-tr from-accentBlue to-accentCyan p-1">
+                        <div class="w-full h-full bg-slate-50 dark:bg-darkBg rounded-2xl flex flex-col justify-center items-center p-6 text-center space-y-4">
+                            <!-- SVG Avatar simulating developer -->
+                            <svg class="w-24 h-24 text-accentCyan" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                            </svg>
+                            <div>
+                                <h3 class="font-bold text-xl">نبيل حمادة إبراهيم</h3>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">مطور ويب وتطبيقات ذكي وسريع</p>
+                            </div>
+                            <div class="flex space-x-3 space-x-reverse text-slate-400 text-lg no-print">
+                                <a href="https://github.com/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-github"></i></a>
+                                <a href="https://linkedin.com/in/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-linkedin"></i></a>
+                                <a href="mailto:Nabilhamada421@gmail.com" class="hover:text-accentCyan transition-colors"><i class="fa-solid fa-envelope"></i></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Textual Content -->
+                <div class="lg:col-span-7 space-y-6">
+                    <div class="space-y-2">
+                        <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase">من أنا؟</span>
+                        <h2 class="text-3xl font-bold">بناء وتطوير الواجهات الخلفية والأمامية باحترافية</h2>
+                    </div>
+                    
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
+                        أنا مطور ويب متكامل بخلفية تقنية متينة تزيد عن 4 سنوات، تخصصت خلالها في بناء تطبيقات قوية بالاعتماد على بيئة العمل **Laravel** (مثل PHP و Livewire و Tailwind CSS). أركز بشكل أساسي على دمج خدمات الـ API المعقدة، وبناء معمارية قواعد بيانات ذكية وعالية الأداء.
+                    </p>
+
+                    <p class="text-slate-600 dark:text-slate-400 leading-relaxed text-lg">
+                        خلال مسيرتي، قمت بقيادة فرق برمجية مكونة من عدة مهندسين لتقديم منتجات للمؤسسات بمقاييس عالمية، وقمت ببناء منصات تعليم إلكتروني كبرى ونظم لإدارة المشاريع وعقود الصيانة والشركات الخدمية في مجالات الإطفاء والسلامة تخدم فروعاً متعددة بكفاءة ممتازة، مع تكامل مثالي لبوابات الدفع والحلول البرمجية المتطورة.
+                    </p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
+                        <div class="flex items-start space-x-3 space-x-reverse">
+                            <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500"><i class="fa-solid fa-circle-check"></i></span>
+                            <div>
+                                <h4 class="font-semibold text-slate-800 dark:text-white">تطوير فوري للمشاريع</h4>
+                                <p class="text-sm text-slate-500">تحويل تصاميم Figma/PSD إلى واجهات حية بيكسل-بيرفكت.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 space-x-reverse">
+                            <span class="p-2 rounded-lg bg-indigo-500/10 text-indigo-500"><i class="fa-solid fa-database"></i></span>
+                            <div>
+                                <h4 class="font-semibold text-slate-800 dark:text-white">تحسين كفاءة الاستعلامات</h4>
+                                <p class="text-sm text-slate-500">تسريع أداء قواعد البيانات وتقليل زمن استجابة الخادم.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 space-x-reverse">
+                            <span class="p-2 rounded-lg bg-cyan-500/10 text-cyan-500"><i class="fa-solid fa-cloud-arrow-up"></i></span>
+                            <div>
+                                <h4 class="font-semibold text-slate-800 dark:text-white">إدارة السيرفرات والتسليم</h4>
+                                <p class="text-sm text-slate-500">رفع المواقع وإدارتها على خوادم Ubuntu وتهيئة الـ DNS والـ SSL.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-3 space-x-reverse">
+                            <span class="p-2 rounded-lg bg-rose-500/10 text-rose-500"><i class="fa-solid fa-users"></i></span>
+                            <div>
+                                <h4 class="font-semibold text-slate-800 dark:text-white">قيادة الفرق التقنية</h4>
+                                <p class="text-sm text-slate-500">خبرة في إدارة المطورين واعتماد أسلوب Agile لإنجاز المهام.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Technical Skills Section -->
+    <section id="skills" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-16 space-y-3">
+                <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase">المهارات التقنية</span>
+                <h2 class="text-3xl sm:text-4xl font-bold">القدرات والخبرة التكنولوجية التي أمتلكها</h2>
+                <p class="text-slate-600 dark:text-slate-400">مجموعة من أفضل وأحدث التكنولوجيات التي أثبت من خلالها كفاءة عالية في تسليم المشاريع.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                
+                <!-- Category 1: Backend -->
+                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-accentBlue/10 text-accentBlue flex items-center justify-center text-xl mb-6">
+                        <i class="fa-solid fa-server"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-4">تطوير الـ Backend</h3>
+                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Laravel (PHP)</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>MVC Architecture</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>RESTful APIs Development</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Multi-Guard Auth</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>OOP & Clean Code</span></li>
+                    </ul>
+                </div>
+
+                <!-- Category 2: Frontend -->
+                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-accentCyan/10 text-accentCyan flex items-center justify-center text-xl mb-6">
+                        <i class="fa-solid fa-code"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-4">تطوير الـ Frontend</h3>
+                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Livewire</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Tailwind CSS</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>JavaScript & Alpine.js</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>jQuery & AJAX</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Figma/PSD to HTML</span></li>
+                    </ul>
+                </div>
+
+                <!-- Category 3: Databases & DevOps -->
+                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-xl mb-6">
+                        <i class="fa-solid fa-database"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-4">قواعد البيانات والسيرفرات</h3>
+                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>MySQL & SQL Expert</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Relational DB Design</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Query Optimization</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Ubuntu Server & Deploy</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>DNS & Server Management</span></li>
+                    </ul>
+                </div>
+
+                <!-- Category 4: Integrations -->
+                <div class="p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 hover:border-accentBlue/50 dark:hover:border-accentCyan/50 transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center text-xl mb-6">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                    </div>
+                    <h3 class="font-bold text-lg mb-4">الدمج والربط الخارجي</h3>
+                    <ul class="space-y-3 text-sm text-slate-600 dark:text-slate-400">
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>BigBlueButton API (Live Class)</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Zoom Meeting Integration</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Apple Pay / checkout integration</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Multi-Currency Gateways</span></li>
+                        <li class="flex items-center space-x-2 space-x-reverse"><span class="w-1.5 h-1.5 rounded-full bg-accentCyan"></span> <span>Git & GitHub Workflows</span></li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Interactive Terminal Section (Artisan Console) -->
+    <section id="terminal" class="py-20 bg-slate-900 text-white relative no-print">
+        <div class="absolute inset-0 opacity-10">
+            <div class="absolute inset-0 bg-[linear-gradient(to_right,#00d4ff20_1px,transparent_1px),linear-gradient(to_bottom,#00d4ff20_1px,transparent_1px)] bg-[size:2rem_2rem]"></div>
+        </div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-10 space-y-3">
+                <span class="text-accentCyan font-mono font-bold text-sm uppercase tracking-wider">&lt; interactive_terminal &gt;</span>
+                <h2 class="text-3xl font-bold font-mono">Artisan Live Console</h2>
+                <p class="text-slate-400 text-sm max-w-lg mx-auto">للمطورين والمهتمين بالتوظيف: جرب كتابة أوامر برمجية حية للتواصل مع سيرتي الذاتية واستخلاص معلوماتي البرمجية!</p>
+            </div>
+
+            <!-- Terminal Mockup -->
+            <div class="rounded-xl border border-slate-700 bg-[#0F172A] shadow-2xl overflow-hidden glow-cyan">
+                
+                <!-- Terminal Title Bar -->
+                <div class="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-slate-700">
+                    <div class="flex items-center space-x-2 space-x-reverse">
+                        <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                        <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    </div>
+                    <span class="text-xs text-slate-400 font-mono">nabil@laravel-system-api: ~</span>
+                    <span class="w-4"></span>
+                </div>
+
+                <!-- Terminal Body -->
+                <div id="terminal-body" class="p-6 h-72 overflow-y-auto font-mono text-sm space-y-3 text-left leading-relaxed" dir="ltr">
+                    <template x-for="log in terminalLogs">
+                        <div>
+                            <!-- User input prefix -->
+                            <template x-if="log.type === 'input'">
+                                <p class="text-white font-semibold" x-text="log.text"></p>
+                            </template>
+                            <!-- System/Output styles -->
+                            <template x-if="log.type === 'system'">
+                                <p class="text-slate-500" x-text="log.text"></p>
+                            </template>
+                            <template x-if="log.type === 'output'">
+                                <pre class="text-accentCyan whitespace-pre-wrap font-mono" x-text="log.text"></pre>
+                            </template>
+                        </div>
+                    </template>
+                </div>
+
+                <!-- Terminal Input Footer -->
+                <div class="flex items-center px-4 py-3 bg-slate-950 border-t border-slate-800">
+                    <span class="text-emerald-400 font-mono mr-2 font-bold select-none">nabil@guest:~$</span>
+                    <input type="text" 
+                           x-model="terminalCommand" 
+                           @keydown.enter="executeTerminal()"
+                           placeholder="اكتب help واضغط Enter لترى الأوامر المتاحة..."
+                           class="flex-1 bg-transparent border-none outline-none focus:ring-0 text-white font-mono text-sm"
+                           dir="ltr">
+                    <button @click="executeTerminal()" class="ml-2 text-accentCyan hover:text-white transition-colors">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Helper command list tags -->
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
+                <span class="text-xs text-slate-500 self-center">أوامر سريعة للضغط والنسخ:</span>
+                <button @click="terminalCommand = 'about'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">about</button>
+                <button @click="terminalCommand = 'skills'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">skills</button>
+                <button @click="terminalCommand = 'projects'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">projects</button>
+                <button @click="terminalCommand = 'experience'; executeTerminal()" class="px-2.5 py-1 text-xs font-mono bg-slate-800 rounded border border-slate-700 hover:border-accentCyan transition-colors">experience</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Work Experience Section -->
+    <section id="experience" class="py-20 bg-slate-50 dark:bg-darkBg/30">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center mb-16 space-y-3">
+                <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase">الجدول الزمني المهني</span>
+                <h2 class="text-3xl font-bold">الخبرة العملية والوظائف السابقة</h2>
+                <p class="text-slate-600 dark:text-slate-400">مسيرة مليئة بالتحديات والتعلم المستمر وقيادة الفرق بنجاح.</p>
+            </div>
+
+            <!-- Timeline -->
+            <div class="relative border-r-2 border-slate-200 dark:border-slate-800 mr-4 md:mr-32 space-y-12">
+                
+                <!-- Position 1 -->
+                <div class="relative">
+                    <!-- Timeline Dot -->
+                    <div class="absolute -right-[9px] top-1.5 w-4 h-4 rounded-full bg-accentCyan border-4 border-slate-50 dark:border-darkBg glow-cyan"></div>
+                    
+                    <!-- Content Card -->
+                    <div class="mr-6 md:mr-10 p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 hover:shadow-lg transition-all">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-slate-800 dark:text-white">مطور ويب مستقل (Full Stack Developer)</h3>
+                                <p class="text-sm font-semibold text-accentBlue dark:text-accentCyan">عن بعد (Remote) | عمل حر عالمي</p>
+                            </div>
+                            <span class="mt-2 md:mt-0 px-3 py-1 text-xs font-bold rounded-full bg-indigo-500/10 text-indigo-500 dark:text-accentCyan self-start">03/2021 - الحالي</span>
+                        </div>
+                        
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                            توليت مسؤولية التحليل والتخطيط الكامل لمتطلبات العملاء العالميين، وتحويلها إلى تطبيقات ويب متكاملة وقوية وعالية الجودة.
+                        </p>
+
+                        <ul class="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>بناء وتحسين بنية قواعد البيانات العلائقية (MySQL) لـ 10+ عملاء عالميين، ورفع كفاءة الاستعلامات بنسبة 25%.</span></li>
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>برمجة واجهات استخدام حية وسريعة بـ Livewire و Tailwind وتوفير لوحات تحكم ديناميكية وإدارية متكاملة.</span></li>
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>إدارة نشر المواقع والتطبيقات بالكامل على خوادم Ubuntu، وضبط سجلات الـ DNS المعقدة، وشهادات الأمان SSL.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Position 2 -->
+                <div class="relative">
+                    <!-- Timeline Dot -->
+                    <div class="absolute -right-[9px] top-1.5 w-4 h-4 rounded-full bg-accentBlue border-4 border-slate-50 dark:border-darkBg"></div>
+                    
+                    <!-- Content Card -->
+                    <div class="mr-6 md:mr-10 p-6 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 hover:shadow-lg transition-all">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-xl text-slate-800 dark:text-white">Backend Web Developer (Laravel) / Team Leader</h3>
+                                <p class="text-sm font-semibold text-accentBlue dark:text-accentCyan">Comma Codes Group - القاهرة، مصر</p>
+                            </div>
+                            <span class="mt-2 md:mt-0 px-3 py-1 text-xs font-bold rounded-full bg-indigo-500/10 text-indigo-500 dark:text-accentCyan self-start">12/2022 - 07/2023</span>
+                        </div>
+                        
+                        <p class="text-slate-600 dark:text-slate-400 text-sm leading-relaxed mb-4">
+                            قمت بقيادة وإدارة فريق تطوير برمجيات مكون من 4 مهندسين لتصميم وفحص واختبار وإطلاق برمجيات وأنظمة ويب بمقاييس مؤسساتية ضخمة.
+                        </p>
+
+                        <ul class="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>دمج بوابات الدفع الشهيرة، وتطوير خوارزمية دمج API Zoom للمكالمات المرئية الآمنة لخدمة العملاء.</span></li>
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>بناء معماريات برمجية معقدة ومحكمة مثل: Multi-Guard Authentication، الدفع المتعدد العملات، وأنظمة التوقيت التلقائي المتعدد.</span></li>
+                            <li class="flex items-center space-x-2 space-x-reverse"><i class="fa-solid fa-caret-left text-accentCyan text-xs"></i> <span>تسليم الميزات البرمجية المعقدة بمتوسط 15% قبل المواعيد النهائية المحددة بفضل التخطيط والقيادة الرشيقة.</span></li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Projects Section -->
+    <section id="projects" class="py-20 bg-slate-100 dark:bg-darkBg/60 border-t border-slate-200 dark:border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center mb-16 space-y-3">
+                <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase">معرض أعمالي المميز</span>
+                <h2 class="text-3xl sm:text-4xl font-bold">مشاريع تم بناؤها وتطويرها من الصفر</h2>
+                <p class="text-slate-600 dark:text-slate-400">حلول برمجية واقعية، ناجحة، وتعمل بكفاءة عالية في قطاع التعليم الإلكتروني والمتاجر الرقمية وعقود السلامة والمقاولات.</p>
+                
+                <!-- Category Filter Tabs -->
+                <div class="flex justify-center space-x-2 space-x-reverse mt-6 no-print">
+                    <button @click="activeTab = 'all'" :class="activeTab === 'all' ? 'bg-accentBlue text-white' : 'bg-slate-200 dark:bg-darkCard text-slate-700 dark:text-slate-300'" class="px-4 py-2 text-xs font-semibold rounded-lg transition-colors">الكل</button>
+                    <button @click="activeTab = 'elearning'" :class="activeTab === 'elearning' ? 'bg-accentBlue text-white' : 'bg-slate-200 dark:bg-darkCard text-slate-700 dark:text-slate-300'" class="px-4 py-2 text-xs font-semibold rounded-lg transition-colors">منصات تعليمية</button>
+                    <button @click="activeTab = 'ecommerce'" :class="activeTab === 'ecommerce' ? 'bg-accentBlue text-white' : 'bg-slate-200 dark:bg-darkCard text-slate-700 dark:text-slate-300'" class="px-4 py-2 text-xs font-semibold rounded-lg transition-colors">متاجر إلكترونية</button>
+                    <button @click="activeTab = 'systems'" :class="activeTab === 'systems' ? 'bg-accentBlue text-white' : 'bg-slate-200 dark:bg-darkCard text-slate-700 dark:text-slate-300'" class="px-4 py-2 text-xs font-semibold rounded-lg transition-colors">أنظمة مخصصة</button>
+                </div>
+            </div>
+
+            <!-- Projects Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <template x-for="project in projects">
+                    <div x-show="activeTab === 'all' || activeTab === project.category" 
+                         class="group rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 overflow-hidden shadow-sm hover:shadow-xl transition-all flex flex-col justify-between" x-cloak>
+                        <div>
+                            <!-- Vector banner / Simulated view with dynamic colors -->
+                            <div class="h-48 bg-gradient-to-tr relative overflow-hidden flex items-center justify-center p-6 text-white text-center" :class="project.color">
+                                <div class="absolute inset-0 opacity-15 bg-[radial-gradient(ellipse_60%_50%_at_50%_0%,#fff_70%,transparent_100%)]"></div>
+                                <div class="relative space-y-2">
+                                    <span class="text-2xl font-bold font-mono uppercase" x-text="project.title"></span>
+                                    <p class="text-xs text-white/80" x-text="project.badge"></p>
+                                </div>
+                            </div>
+                            
+                            <!-- Content details -->
+                            <div class="p-6">
+                                <h3 class="font-bold text-xl mb-2 text-slate-800 dark:text-white group-hover:text-accentBlue dark:group-hover:text-accentCyan transition-colors" x-text="project.title"></h3>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-4 line-clamp-3" x-text="project.shortDesc"></p>
+                                <div class="flex flex-wrap gap-1.5 mb-4">
+                                    <template x-for="tech in project.techs">
+                                        <span class="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-semibold rounded" x-text="tech"></span>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="px-6 pb-6 pt-0 no-print">
+                            <button @click="selectedProjectId = project.id" class="w-full py-2.5 rounded-lg text-center bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 text-slate-700 dark:text-slate-200 font-bold text-xs transition-colors flex items-center justify-center space-x-2 space-x-reverse">
+                                <span>عرض التفاصيل البرمجية</span>
+                                <i class="fa-solid fa-code"></i>
+                            </button>
+                        </div>
+                    </div>
+                </template>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Project Details Modal (Popup for Architecture and Details) -->
+    <div x-show="selectedProjectId !== null" 
+         class="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" x-cloak>
+        
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" @click="selectedProjectId = null"></div>
+
+        <!-- Modal Box -->
+        <template x-if="getSelectedProject() !== null">
+            <div class="relative bg-white dark:bg-darkCard w-full max-w-3xl rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden z-10 max-h-[90vh] flex flex-col">
+                
+                <!-- Modal Header -->
+                <div class="flex items-center justify-between p-6 border-b border-slate-200 dark:border-slate-800">
+                    <div>
+                        <span class="text-xs text-accentBlue dark:text-accentCyan font-semibold uppercase tracking-wider">تفاصيل المعمارية البرمجية</span>
+                        <h4 class="text-xl font-bold text-slate-800 dark:text-white" x-text="getSelectedProject().title"></h4>
+                    </div>
+                    <button @click="selectedProjectId = null" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Modal Content (Scrollable) -->
+                <div class="p-6 overflow-y-auto space-y-6 text-slate-700 dark:text-slate-300">
+                    
+                    <!-- Project Specs & Accomplishments -->
+                    <div class="space-y-2">
+                        <h5 class="font-bold text-sm text-slate-800 dark:text-white">أبرز ما تم إنجازه والمميزات:</h5>
+                        <ul class="list-disc list-inside space-y-2 text-xs leading-relaxed text-slate-600 dark:text-slate-400">
+                            <template x-for="feature in getSelectedProject().features">
+                                <li x-text="feature"></li>
+                            </template>
+                        </ul>
+                    </div>
+
+                    <!-- Simulation Architecture Diagram -->
+                    <div class="space-y-3">
+                        <h5 class="font-bold text-sm text-slate-800 dark:text-white">مخطط تدفق العمل والربط (Architecture Flow):</h5>
+                        <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-center text-xs font-mono font-bold">
+                                <div class="p-2.5 rounded bg-blue-500/10 border border-blue-500 text-blue-500 w-full md:w-auto">
+                                    <i class="fa-solid fa-desktop mb-1 block text-lg"></i>
+                                    <span x-text="getSelectedProject().flow.from"></span>
+                                </div>
+                                <div class="text-slate-400"><i class="fa-solid fa-angles-left hidden md:inline"></i><i class="fa-solid fa-angles-down md:hidden"></i></div>
+                                <div class="p-2.5 rounded bg-amber-500/10 border border-amber-500 text-amber-500 w-full md:w-auto">
+                                    <i class="fa-solid fa-shield-halved mb-1 block text-lg"></i>
+                                    <span x-text="getSelectedProject().flow.guard"></span>
+                                </div>
+                                <div class="text-slate-400"><i class="fa-solid fa-angles-left hidden md:inline"></i><i class="fa-solid fa-angles-down md:hidden"></i></div>
+                                <div class="p-2.5 rounded bg-purple-500/10 border border-purple-500 text-purple-500 w-full md:w-auto">
+                                    <i class="fa-solid fa-puzzle-piece mb-1 block text-lg"></i>
+                                    <span x-text="getSelectedProject().flow.service"></span>
+                                </div>
+                                <div class="text-slate-400"><i class="fa-solid fa-angles-left hidden md:inline"></i><i class="fa-solid fa-angles-down md:hidden"></i></div>
+                                <div class="p-2.5 rounded bg-cyan-500/10 border border-cyan-500 text-cyan-500 w-full md:w-auto">
+                                    <i class="fa-solid fa-database mb-1 block text-lg"></i>
+                                    <span x-text="getSelectedProject().flow.db"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Simulating a Code Snippet for Laravel Architecture -->
+                    <div class="space-y-3">
+                        <h5 class="font-bold text-sm text-slate-800 dark:text-white">كود الـ Controller الأساسي (Laravel Controller):</h5>
+                        <div class="rounded-xl overflow-hidden bg-[#0A1428] border border-slate-800 p-4 text-xs font-mono text-left leading-relaxed text-slate-300" dir="ltr">
+                            <pre class="whitespace-pre-wrap" x-text="getSelectedProject().code"></pre>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="flex items-center justify-end p-6 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-darkBg/50">
+                    <button @click="selectedProjectId = null" class="px-5 py-2 rounded-lg bg-accentBlue text-white hover:bg-opacity-90 transition-all font-bold text-xs">
+                        إغلاق التفاصيل
+                    </button>
+                </div>
+
+            </div>
+        </template>
+    </div>
+
+    <!-- Education & Languages Section -->
+    <section class="py-20">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                
+                <!-- Education Box -->
+                <div class="p-8 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 space-y-6">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <span class="w-10 h-10 rounded-lg bg-accentBlue/10 text-accentBlue flex items-center justify-center text-lg"><i class="fa-solid fa-graduation-cap"></i></span>
+                        <h3 class="font-bold text-xl">التعليم والمؤهل الدراسي</h3>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-r-2 border-accentCyan pr-4 space-y-1">
+                            <h4 class="font-bold text-slate-800 dark:text-white">بكالوريوس في نظم المعلومات الإدارية (MIS)</h4>
+                            <p class="text-sm font-semibold text-slate-500">أكاديمية المدينة (Madina Academy)</p>
+                            <p class="text-xs text-slate-400">فترة الدراسة: 09/2020 - حالي</p>
+                            <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed pt-2">
+                                المناهج والخبرات الأكاديمية: البرمجة كائنية التوجه (OOP)، قواعد البيانات ونظم إدارتها (DBMS)، أنظمة التشغيل، وتحليل وتصميم النظم البرمجية.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Languages Box -->
+                <div class="p-8 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 space-y-6">
+                    <div class="flex items-center space-x-3 space-x-reverse">
+                        <span class="w-10 h-10 rounded-lg bg-accentCyan/10 text-accentCyan flex items-center justify-center text-lg"><i class="fa-solid fa-language"></i></span>
+                        <h3 class="font-bold text-xl">اللغات المتقنة</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm font-semibold">
+                                <span>العربية (اللغة الأم)</span>
+                                <span class="text-accentCyan">100%</span>
+                            </div>
+                            <div class="h-2 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-accentCyan rounded" style="width: 100%"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex justify-between text-sm font-semibold">
+                                <span>الإنجليزية (احترافية مهنية وتقنية)</span>
+                                <span class="text-accentBlue">85%</span>
+                            </div>
+                            <div class="h-2 rounded bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                                <div class="h-full bg-accentBlue rounded" style="width: 85%"></div>
+                            </div>
+                            <p class="text-[10px] text-slate-500">إتقان كامل لكتابة وتوثيق الأكواد البرمجية والمستندات التقنية وقراءة المراجع العلمية.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Me Section -->
+    <section id="contact" class="py-20 bg-slate-100 dark:bg-darkBg/60 border-t border-slate-200 dark:border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                
+                <!-- Contact info details -->
+                <div class="lg:col-span-5 space-y-8">
+                    <div class="space-y-3">
+                        <span class="text-accentBlue dark:text-accentCyan font-bold text-sm tracking-widest uppercase">لنعمل معاً</span>
+                        <h2 class="text-3xl font-bold">اتصل بي لبدء التعاون أو التوظيف</h2>
+                        <p class="text-slate-600 dark:text-slate-400">سواء كنت بحاجة إلى تطوير تطبيق من الصفر، إدارة فريق تطوير، أو دمج بوابات بث وخدمات متطورة، أنا هنا للمساعدة.</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Contact Item -->
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 rounded-xl bg-slate-200 dark:bg-darkCard text-accentBlue dark:text-accentCyan flex items-center justify-center text-lg border border-slate-300 dark:border-slate-800">
+                                <i class="fa-solid fa-location-dot"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-400 uppercase">الموقع الحالي</h4>
+                                <p class="text-slate-800 dark:text-white font-semibold">الجيزة، جمهورية مصر العربية</p>
+                            </div>
+                        </div>
+
+                        <!-- Contact Item -->
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 rounded-xl bg-slate-200 dark:bg-darkCard text-accentBlue dark:text-accentCyan flex items-center justify-center text-lg border border-slate-300 dark:border-slate-800">
+                                <i class="fa-solid fa-phone"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-400 uppercase">رقم الهاتف والتواصل المباشر</h4>
+                                <a href="tel:+201118172639" class="text-slate-800 dark:text-white font-semibold font-mono hover:text-accentCyan transition-colors">+201118172639</a>
+                            </div>
+                        </div>
+
+                        <!-- Contact Item -->
+                        <div class="flex items-center space-x-4 space-x-reverse">
+                            <div class="w-12 h-12 rounded-xl bg-slate-200 dark:bg-darkCard text-accentBlue dark:text-accentCyan flex items-center justify-center text-lg border border-slate-300 dark:border-slate-800">
+                                <i class="fa-solid fa-envelope"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-xs text-slate-400 uppercase">البريد الإلكتروني المباشر</h4>
+                                <a href="mailto:Nabilhamada421@gmail.com" class="text-slate-800 dark:text-white font-semibold font-mono hover:text-accentCyan transition-colors">Nabilhamada421@gmail.com</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Social Icons links -->
+                    <div class="pt-4 border-t border-slate-300 dark:border-slate-800">
+                        <h4 class="font-bold text-xs text-slate-400 uppercase mb-4">شبكات التواصل المهنية</h4>
+                        <div class="flex space-x-4 space-x-reverse">
+                            <a href="https://linkedin.com/in/nabil7amada" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-darkCard text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-accentBlue hover:text-white transition-all"><i class="fa-brands fa-linkedin-in"></i></a>
+                            <a href="https://github.com/nabil7amada" target="_blank" class="w-10 h-10 rounded-lg bg-slate-200 dark:bg-darkCard text-slate-600 dark:text-slate-300 flex items-center justify-center hover:bg-slate-800 hover:text-white transition-all"><i class="fa-brands fa-github"></i></a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Form Box -->
+                <div class="lg:col-span-7 no-print">
+                    <div class="p-8 rounded-2xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800/80 shadow-sm relative">
+                        
+                        <!-- Form Success Simulated -->
+                        <div x-show="formSubmitted" 
+                             class="absolute inset-0 bg-white dark:bg-darkCard rounded-2xl flex flex-col items-center justify-center p-6 text-center z-10 space-y-4" x-cloak>
+                            <div class="w-16 h-16 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center text-3xl">
+                                <i class="fa-solid fa-circle-check"></i>
+                            </div>
+                            <h3 class="font-bold text-2xl text-slate-800 dark:text-white">شكراً لتواصلك معي!</h3>
+                            <p class="text-slate-500 text-sm max-w-sm">تم إرسال رسالتك ومحاكاتها بنجاح. سأتواصل معك قريباً جداً عبر البريد الإلكتروني.</p>
+                            <button @click="formSubmitted = false" class="px-5 py-2 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-850 dark:hover:bg-slate-800">إرسال رسالة أخرى</button>
+                        </div>
+
+                        <form @submit.prevent="submitContactForm()" class="space-y-6">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">الاسم الكريم</label>
+                                    <input type="text" x-model="formData.name" required placeholder="مثال: أحمد علي" class="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-accentBlue dark:focus:ring-accentCyan text-slate-800 dark:text-white text-sm transition-all">
+                                </div>
+                                <div class="space-y-2">
+                                    <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">البريد الإلكتروني</label>
+                                    <input type="email" x-model="formData.email" required placeholder="ahmed@example.com" class="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-accentBlue dark:focus:ring-accentCyan text-slate-800 dark:text-white text-sm transition-all">
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">عنوان الرسالة</label>
+                                <input type="text" x-model="formData.subject" required placeholder="مثال: طلب تطوير منصة تعليمية" class="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-accentBlue dark:focus:ring-accentCyan text-slate-800 dark:text-white text-sm transition-all">
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="text-xs font-bold text-slate-400 uppercase tracking-wider block">تفاصيل المشروع أو الاستفسار</label>
+                                <textarea rows="5" x-model="formData.message" required placeholder="اكتب نبذة عن مشروعك أو طلبك هنا..." class="w-full px-4 py-3 rounded-lg bg-slate-50 dark:bg-darkBg border border-slate-200 dark:border-slate-800 focus:outline-none focus:ring-2 focus:ring-accentBlue dark:focus:ring-accentCyan text-slate-800 dark:text-white text-sm transition-all"></textarea>
+                            </div>
+
+                            <button type="submit" :disabled="isSending" class="w-full py-4 rounded-xl bg-gradient-to-r from-accentBlue to-accentCyan text-white font-bold text-sm tracking-wider transition-all transform hover:-translate-y-0.5 shadow-md flex items-center justify-center space-x-2 space-x-reverse">
+                                <template x-if="isSending">
+                                    <span class="inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                </template>
+                                <span x-text="isSending ? 'جاري الإرسال والمحاكاة...' : 'إرسال الرسالة'"></span>
+                            </button>
+                        </form>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-white dark:bg-darkBg py-10 border-t border-slate-200 dark:border-slate-800/80 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <div class="flex items-center space-x-2 space-x-reverse">
+                    <div class="w-8 h-8 rounded bg-gradient-to-tr from-accentBlue to-accentCyan flex items-center justify-center text-white font-mono font-bold text-sm">N</div>
+                    <span class="font-bold text-sm dark:text-white">Nabil Hamada Portfolio</span>
+                </div>
+
+                <p class="text-xs text-slate-500 text-center font-mono">
+                    &copy; 2026 Nabil Hamada. All rights reserved. Crafted with Laravel & Tailwind concept.
+                </p>
+
+                <div class="flex space-x-4 space-x-reverse text-slate-400 text-sm no-print">
+                    <a href="https://github.com/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-github"></i></a>
+                    <a href="https://linkedin.com/in/nabil7amada" target="_blank" class="hover:text-accentCyan transition-colors"><i class="fa-brands fa-linkedin"></i></a>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
