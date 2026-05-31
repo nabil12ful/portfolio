@@ -443,6 +443,11 @@ class ExamSubmissionController extends Controller
     </script>
     <!-- FontAwesome for Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Highlight.js for Syntax Highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/php.min.js"></script>
     
     <!-- Alpine.js -->
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -1137,8 +1142,17 @@ class ExamSubmissionController extends Controller
                     <!-- Simulating a Code Snippet for Laravel Architecture -->
                     <div class="space-y-3">
                         <h5 class="font-bold text-sm text-slate-800 dark:text-white">كود الـ Controller الأساسي (Laravel Controller):</h5>
-                        <div class="rounded-xl overflow-hidden bg-[#0A1428] border border-slate-800 p-4 text-xs font-mono text-left leading-relaxed text-slate-300" dir="ltr">
-                            <pre class="whitespace-pre-wrap" x-text="getSelectedProject().code"></pre>
+                        <div class="rounded-xl overflow-hidden border border-slate-700 text-xs font-mono text-left leading-relaxed" dir="ltr" style="background:#282c34;">
+                            <div class="flex items-center justify-between px-4 py-2 border-b border-slate-700" style="background:#21252b;">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                </div>
+                                <span class="text-slate-400 text-[10px] font-mono" x-text="getSelectedProject().title + 'Controller.php'"></span>
+                                <span class="text-slate-500 text-[10px]">PHP · Laravel</span>
+                            </div>
+                            <pre class="overflow-x-auto"><code class="language-php text-xs leading-relaxed" x-effect="$el.textContent = getSelectedProject().code; hljs.highlightElement($el);"></code></pre>
                         </div>
                     </div>
 
