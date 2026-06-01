@@ -121,8 +121,8 @@ class LessonController extends Controller
 }`
         },
         {
-            id: 'modareskom',
-            title: 'Modareskom',
+            id: 'mdrscom',
+            title: 'Mdrscom',
             category: 'elearning',
             badge: 'سوق تعليمي متعدد الموردين',
             color: 'from-purple-600 to-indigo-600',
@@ -470,7 +470,7 @@ class ExamSubmissionController extends Controller
         } else if (cmd === 'skills' || cmd === 'php artisan skills') {
             response = 'المهارات:\n- Backend: Laravel, PHP, RESTful APIs, OOP, Multi-Guard\n- Frontend: Livewire, Tailwind CSS, Alpine.js, Ajax\n- Databases: MySQL, Schema Design, Optimization\n- Tools: Ubuntu Server, DNS Management, Git';
         } else if (cmd === 'projects' || cmd === 'php artisan projects') {
-            response = 'المشاريع الرئيسية:\n1. Zawaya Platform (منصة البث التعليمي المباشر)\n2. Modareskom (سوق المدرسين)\n3. 9 Red Shield (منظومة شركات ومشاريع الإطفاء وفروعها)\n4. Elhaffar Rig Store (إدارة وتتبع المعدات)\nاكتب اسم المشروع لمزيد من التفاصيل والـ Controller البرمجي.';
+            response = 'المشاريع الرئيسية:\n1. Zawaya Platform (منصة البث التعليمي المباشر)\n2. Mdrscom (سوق المدرسين)\n3. 9 Red Shield (منظومة شركات ومشاريع الإطفاء وفروعها)\n4. Elhaffar Rig Store (إدارة وتتبع المعدات)\nاكتب اسم المشروع لمزيد من التفاصيل والـ Controller البرمجي.';
         } else if (cmd === 'experience' || cmd === 'php artisan experience') {
             response = 'الخبرات:\n- Full Stack Developer (Freelancer) | 2021 - Present\n- Backend Web Developer & Team Lead | Comma Codes (2022-2023)';
         } else if (cmd === 'clear') {
@@ -481,8 +481,8 @@ class ExamSubmissionController extends Controller
             response = 'مشروع 9 Red Shield:\nنظام ERP متكامل لشركات ومقاولات الإطفاء ومكافحة الحريق. يدعم تنظيم العمليات التشغيلية عبر الفروع المتعددة بالكامل، إدارة عقود الصيانة الدورية وتنبيهاتها، وإسناد وتتبع الفنيين الميدانيين.';
         } else if (cmd.includes('zawaya')) {
             response = 'مشروع Zawaya:\nمنصة سعودية رائدة للتعليم المباشر. تم دمج API BigBlueButton لإدارة آلاف الطلاب، وربط بوابات دفع Apple Pay، وتطوير خوارزمية تفعيل الدخول التلقائي قبل البث بخمس دقائق.';
-        } else if (cmd.includes('modareskom')) {
-            response = 'مشروع Modareskom:\nسوق رقمي متعدد البائعين يربط المعلمين بالطلاب. يدعم جدولة مرنة لأكثر من 100 موعد يومي، وعملات متعددة وتوليد غرف الفصول الافتراضية تلقائياً.';
+        } else if (cmd.includes('mdrscom')) {
+            response = 'مشروع Mdrscom:\nسوق رقمي متعدد البائعين يربط المعلمين بالطلاب. يدعم جدولة مرنة لأكثر من 100 موعد يومي، وعملات متعددة وتوليد غرف الفصول الافتراضية تلقائياً.';
         } else {
             response = `Command &quot;${cmd}&quot; not found. Type &quot;help&quot; for options.`;
         }
@@ -1296,7 +1296,7 @@ class ExamSubmissionController extends Controller
                         <div class="border-r-2 border-accentCyan pr-4 space-y-1">
                             <h4 class="font-bold text-slate-800 dark:text-white">بكالوريوس في نظم المعلومات الإدارية (MIS)</h4>
                             <p class="text-sm font-semibold text-slate-500">أكاديمية المدينة (Madina Academy)</p>
-                            <p class="text-xs text-slate-400">فترة الدراسة: 09/2020 - حالي</p>
+                            <p class="text-xs text-slate-400">فترة الدراسة: 09/2020 - 08/2024</p>
                             <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed pt-2">
                                 المناهج والخبرات الأكاديمية: البرمجة كائنية التوجه (OOP)، قواعد البيانات ونظم إدارتها (DBMS)، أنظمة التشغيل، وتحليل وتصميم النظم البرمجية.
                             </p>
