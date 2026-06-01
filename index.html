@@ -1,18 +1,44 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl" x-data="{ 
     darkMode: true, 
+    locale: 'ar',
     mobileMenuOpen: false, 
     activeTab: 'all',
     terminalCommand: '',
     terminalHistory: [],
-    terminalLogs: [
-        { text: 'نظام تشغيل نبيل حمادة الإصدار v4.4.0', type: 'system' },
-        { text: 'تم تهيئة قاعدة البيانات بنجاح. اكتب &quot;help&quot; أو &quot;php artisan list&quot; للتفاعل المباشر.', type: 'system' }
-    ],
+    terminalLogs: [],
     selectedProjectId: null,
     formSubmitted: false,
     formData: { name: '', email: '', subject: '', message: '' },
     isSending: false,
+
+    resumeGoogleDriveLink: 'https://drive.google.com/file/d/1_T9y_z_Sj8yCqK8-8b9D7VjLg9x_M0nF/view?usp=sharing',
+
+    init() {
+        this.resetTerminal();
+        this.$watch('selectedProjectId', value => {
+            if (value !== null) {
+                this.$nextTick(() => {
+                    const el = document.querySelector('#modal-code');
+                    if (el && window.hljs) hljs.highlightElement(el);
+                });
+            }
+        });
+    },
+
+    resetTerminal() {
+        if (this.locale === 'ar') {
+            this.terminalLogs = [
+                { text: 'نظام تشغيل نبيل حمادة الإصدار v5.5.0', type: 'system' },
+                { text: 'تم تهيئة قاعدة البيانات بنجاح. اكتب &quot;help&quot; أو &quot;php artisan list&quot; للتفاعل المباشر.', type: 'system' }
+            ];
+        } else {
+            this.terminalLogs = [
+                { text: 'Nabil Hamada Kernel OS v5.5.0', type: 'system' },
+                { text: 'Database initialized successfully. Type &quot;help&quot; or &quot;php artisan list&quot; to interact.', type: 'system' }
+            ];
+        }
+    },
     
     // دالة تتيح تحميل هذا الملف البرمجي نفسه بصيغة index.html مباشرة من المتصفح
     downloadSelf() {
@@ -154,6 +180,78 @@ class BookingController extends Controller
 
             return response()->json(['status' => 'reserved', 'booking_id' => $booking->id]);
         });
+    }
+}`
+        },
+        {
+            id: 'smart_medical',
+            title: 'Smart Medical Platform',
+            category: 'systems',
+            badge: 'منصة طبية ذكية متكاملة',
+            color: 'from-emerald-600 to-blue-800',
+            shortDesc: 'مشروع التخرج الحاصل على المركز الأول على مستوى الجامعة؛ نظام طبي متكامل يربط الأطباء والممرضين بالمرضى مع حجز تمريض منزلي وبحث أدوية ذكي.',
+            techs: ['Laravel', 'React', 'Inertia.js', 'MySQL', 'Software Architecture'],
+            features: [
+                'قيادة الفريق الهندسي لابتكار معمارية المنصة وتصميم الواجهات الديناميكية الحديثة بالربط بين Laravel و React عبر Inertia.js.',
+                'بناء محرك حجز تمريض منزلي واستشارات فورية يربط المريض بالطاقم الطبي المتوفر جغرافياً ولحظياً بشكل فائق الأداء.',
+                'تطوير أداة بحث أدوية متطورة تفحص وتطابق الأسعار والآثار الجانبية وموانع الاستعمال وتوافرها بالصيدليات المجاورة.'
+            ],
+            flow: {
+                from: 'طلب استشارة أو ممرض منزلي',
+                guard: 'Inertia Request Payload Verification',
+                service: 'Geo-Location Real-time Match Algorithm',
+                db: 'تحديث حالة الحجز وتنبيه الطاقم الطبي'
+            },
+            code: `<?php
+
+namespace App\\Http\\Controllers;
+
+use App\\Models\\NurseBooking;
+use Inertia\\Inertia;
+use Illuminate\\Http\\Request;
+
+class MedicalPlatformController extends Controller
+{
+    /**
+     * معالجة طلبات حجز التمريض المنزلي لحظياً وتوجيهها عبر Inertia.js و React.
+     */
+    public function bookHomeNursing(Request $request)
+    {
+        $validated = $request->validate([
+            'patient_latitude'  => 'required|numeric',
+            'patient_longitude' => 'required|numeric',
+            'required_specialty'=> 'required|string',
+            'booking_time'      => 'required|date|after:now'
+        ]);
+
+        $nearestStaff = \\App\\Models\\MedicalStaff::where('specialty', $validated['required_specialty'])
+            ->where('is_available', true)
+            ->selectRaw('id, name, latitude, longitude, ( 6371 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance', [
+                $validated['patient_latitude'],
+                $validated['patient_longitude'],
+                $validated['patient_latitude']
+            ])
+            ->orderBy('distance')
+            ->first();
+
+        if (!$nearestStaff) {
+            return Inertia::render('HomeNursing/BookingStatus', [
+                'status'  => 'not_found',
+                'message' => 'عذراً، لا يوجد طاقم تمريض متاح حالياً في محيطك الجغرافي.'
+            ]);
+        }
+
+        $booking = NurseBooking::create([
+            'patient_id'       => auth()->id(),
+            'medical_staff_id' => $nearestStaff->id,
+            'scheduled_at'     => $validated['booking_time'],
+            'status'           => 'confirmed'
+        ]);
+
+        return Inertia::render('HomeNursing/BookingSuccess', [
+            'booking_details' => $booking->load('medicalStaff'),
+            'distance_km'     => round($nearestStaff->distance, 2)
+        ]);
     }
 }`
         },
@@ -409,7 +507,7 @@ class ExamSubmissionController extends Controller
             setTimeout(() => { this.formSubmitted = false; }, 5000);
         }, 1500);
     }
-}" :class="{ 'dark': darkMode }">
+}" :class="{ 'dark': darkMode }" :dir="locale === 'ar' ? 'rtl' : 'ltr'">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -479,6 +577,21 @@ class ExamSubmissionController extends Controller
             text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
+        /* Highlight.js — override default background to match our custom code container */
+        .hljs {
+            background: transparent !important;
+            padding: 1.25rem 1.5rem !important;
+            display: block;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        /* Ensure the pre wrapper has no extra padding or margin */
+        pre.overflow-x-auto {
+            margin: 0;
+            padding: 0;
+            background: transparent;
+        }
+
         /* Print Media Styles to output clean PDF */
         @media print {
             body {
@@ -526,8 +639,13 @@ class ExamSubmissionController extends Controller
                 <a href="#contact" class="hover:text-accentBlue dark:hover:text-accentCyan transition-colors">اتصل بي</a>
             </nav>
 
-            <!-- Mode Switcher & CTAs -->
+            <!-- Mode Switcher, Lang Toggle & CTAs -->
             <div class="hidden md:flex items-center space-x-4 space-x-reverse">
+                <!-- Language Toggle -->
+                <button @click="locale = (locale === 'ar' ? 'en' : 'ar'); resetTerminal();" class="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-700 dark:text-white text-xs font-semibold border border-slate-200 dark:border-slate-800 hover:border-accentCyan transition-all flex items-center gap-1">
+                    <i class="fa-solid fa-globe text-accentCyan"></i>
+                    <span x-text="locale === 'ar' ? 'English' : 'العربية'"></span>
+                </button>
                 <!-- Theme Toggle -->
                 <button @click="darkMode = !darkMode" class="p-2.5 rounded-lg bg-slate-100 dark:bg-darkCard text-slate-600 dark:text-slate-400 hover:text-accentBlue dark:hover:text-accentCyan border border-slate-200 dark:border-slate-800 transition-all" title="تبديل الثيم">
                     <template x-if="!darkMode">
@@ -1146,7 +1264,7 @@ class ExamSubmissionController extends Controller
                                 <span class="text-slate-400 text-[10px] font-mono" x-text="getSelectedProject().title + 'Controller.php'"></span>
                                 <span class="text-slate-500 text-[10px]">PHP · Laravel</span>
                             </div>
-                            <pre class="overflow-x-auto"><code class="language-php text-xs leading-relaxed" x-effect="$el.textContent = getSelectedProject().code; hljs.highlightElement($el);"></code></pre>
+                            <pre class="overflow-x-auto"><code id="modal-code" class="language-php text-xs leading-relaxed" x-effect="$el.textContent = getSelectedProject().code; hljs.highlightElement($el);"></code></pre>
                         </div>
                     </div>
 
