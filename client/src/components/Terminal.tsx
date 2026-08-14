@@ -8,8 +8,12 @@ type Line = { kind: "command" | "output" | "meta"; content: string };
 
 type Props = { lang: Lang };
 
-const commandNames = ["php artisan about", "php artisan skills", "php artisan projects", "php artisan experience", "php artisan contact", "php artisan help", "help", "clear"];
-const demoCommands = ["php artisan about", "php artisan skills", "php artisan projects"];
+const commandNames = ["php artisan about", "php artisan skills", "php artisan stack", "php artisan projects", "php artisan experience", "php artisan contact", "php artisan help", "help", "clear"];
+const demoCommands = ["php artisan about", "php artisan skills", "php artisan stack", "php artisan projects"];
+const stackOutput = {
+  en: ["Backend      PHP 8.3 · Laravel 11 · Eloquent ORM · Clean Architecture", "Data         MySQL · Redis · Query Optimization · WebSockets", "Frontend     React · TypeScript · Livewire · Inertia.js · Tailwind CSS", "DevOps       Docker · GitHub Actions · Nginx · SSL", "Payments     Stripe · Apple Pay · JWT · Webhooks"],
+  ar: ["Backend      PHP 8.3 · Laravel 11 · Eloquent ORM · Clean Architecture", "البيانات     MySQL · Redis · تحسين الاستعلامات · WebSockets", "الواجهة     React · TypeScript · Livewire · Inertia.js · Tailwind CSS", "DevOps       Docker · GitHub Actions · Nginx · SSL", "المدفوعات   Stripe · Apple Pay · JWT · Webhooks"],
+};
 
 export default function Terminal({ lang }: Props) {
   const [input, setInput] = useState("");
@@ -89,6 +93,8 @@ export default function Terminal({ lang }: Props) {
       output = lang === "ar" ? ["Nabil Hamada Ebrahim", "Full-Stack Developer متخصص في PHP / Laravel", "أبني أنظمة ERP وCRM آمنة، سريعة، وقابلة للتوسع.", "الموقع: الجيزة، مصر"] : ["Nabil Hamada Ebrahim", "Full-Stack Developer focused on PHP / Laravel", "Building secure, fast, scalable ERP and CRM systems.", "Location: Giza, Egypt"];
     } else if (normalized === "php artisan skills") {
       output = skillGroups.map((group) => `${text(group.label, lang)} :: ${group.items.slice(0, 4).join(" · ")}`);
+    } else if (normalized === "php artisan stack") {
+      output = stackOutput[lang];
     } else if (normalized === "php artisan projects") {
       output = projects.map((project) => `${project.number}  ${project.title} — ${text(project.type, lang)}`);
     } else if (normalized === "php artisan experience") {

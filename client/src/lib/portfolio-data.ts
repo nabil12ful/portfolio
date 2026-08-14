@@ -33,7 +33,7 @@ export const copy = {
     hint: { en: "Type a command or click a suggestion", ar: "اكتب أمراً أو اختر اقتراحاً" },
     run: { en: "Run", ar: "تنفيذ" },
     suggestions: { en: "Try these", ar: "جرّب هذه الأوامر" },
-    commands: { en: ["php artisan about", "php artisan skills", "php artisan projects"], ar: ["php artisan about", "php artisan skills", "php artisan projects"] },
+    commands: { en: ["php artisan about", "php artisan skills", "php artisan stack", "php artisan projects"], ar: ["php artisan about", "php artisan skills", "php artisan stack", "php artisan projects"] },
   },
   about: {
     kicker: { en: "01 / the brief", ar: "01 / الملخص" },
