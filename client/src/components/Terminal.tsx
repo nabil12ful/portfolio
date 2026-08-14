@@ -1,5 +1,5 @@
 // Style reminder: Laravel Command Center — terminal is the signature interaction, instant and readable.
-
+/* Design: a focused Laravel command surface—monospace rhythm, restrained green signal, and motion that feels like a real developer console rather than decoration. */
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, Command, Copy, Terminal as TerminalIcon } from "lucide-react";
 import { copy, contact, experiences, Lang, projects, skillGroups, stats, text } from "@/lib/portfolio-data";
@@ -9,24 +9,72 @@ type Line = { kind: "command" | "output" | "meta"; content: string };
 type Props = { lang: Lang };
 
 const commandNames = ["php artisan about", "php artisan skills", "php artisan projects", "php artisan experience", "php artisan contact", "php artisan help", "help", "clear"];
+const demoCommands = ["php artisan about", "php artisan skills", "php artisan projects"];
 
 export default function Terminal({ lang }: Props) {
   const [input, setInput] = useState("");
   const [copied, setCopied] = useState(false);
   const [history, setHistory] = useState<Line[]>([]);
+  const [demoCommand, setDemoCommand] = useState("");
+  const [demoTyping, setDemoTyping] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const demoTimerRef = useRef<number | null>(null);
+
+  const clearDemoTimer = () => {
+    if (demoTimerRef.current !== null) {
+      window.clearTimeout(demoTimerRef.current);
+      demoTimerRef.current = null;
+    }
+  };
+
+  const stopDemo = () => {
+    clearDemoTimer();
+    setDemoTyping(false);
+    setDemoCommand("");
+  };
 
   useEffect(() => {
     setHistory([{ kind: "meta", content: text(copy.terminal.intro, lang) }]);
     setInput("");
+    setDemoCommand("");
+    setDemoTyping(false);
+
+    let commandIndex = 0;
+    let characterIndex = 0;
+    const typeNextCommand = () => {
+      const command = demoCommands[commandIndex];
+      setDemoTyping(true);
+      setDemoCommand(command.slice(0, characterIndex + 1));
+      characterIndex += 1;
+
+      if (characterIndex < command.length) {
+        demoTimerRef.current = window.setTimeout(typeNextCommand, 48);
+        return;
+      }
+
+      demoTimerRef.current = window.setTimeout(() => {
+        execute(command, true);
+        setDemoTyping(false);
+        setDemoCommand("");
+        commandIndex += 1;
+        characterIndex = 0;
+        if (commandIndex < demoCommands.length) {
+          demoTimerRef.current = window.setTimeout(typeNextCommand, 1550);
+        }
+      }, 620);
+    };
+
+    demoTimerRef.current = window.setTimeout(typeNextCommand, 850);
+    return () => clearDemoTimer();
   }, [lang]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [history]);
 
-  const execute = (raw: string) => {
+  const execute = (raw: string, fromDemo = false) => {
+    if (!fromDemo) stopDemo();
     const command = raw.trim().toLowerCase();
     if (!command) return;
     if (command === "clear") {
@@ -62,14 +110,24 @@ export default function Terminal({ lang }: Props) {
     execute(input);
   };
 
+  const focusTerminal = () => {
+    if (demoTyping) {
+      stopDemo();
+      window.requestAnimationFrame(() => inputRef.current?.focus());
+      return;
+    }
+    inputRef.current?.focus();
+  };
+
   const copyPrompt = async () => {
+    stopDemo();
     await navigator.clipboard?.writeText("php artisan about");
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
   };
 
   return (
-    <div className="terminal-window" onClick={() => inputRef.current?.focus()}>
+    <div className="terminal-window" onClick={focusTerminal}>
       <div className="terminal-chrome">
         <div className="terminal-dots" aria-hidden="true"><span /><span /><span /></div>
         <div className="terminal-title"><TerminalIcon size={14} /> {text(copy.terminal.title, lang)}</div>
@@ -85,10 +143,19 @@ export default function Terminal({ lang }: Props) {
             <span>{line.content}</span>
           </div>
         ))}
-        <form className="terminal-form" onSubmit={submit}>
-          <span className="terminal-prompt"><ChevronRight size={15} />$</span>
-          <input ref={inputRef} value={input} onChange={(event) => setInput(event.target.value)} aria-label={text(copy.terminal.hint, lang)} autoComplete="off" spellCheck="false" placeholder={text(copy.terminal.hint, lang)} />
-          <button type="submit" className="terminal-submit" aria-label={text(copy.terminal.run, lang)}><Command size={15} /></button>
+        <form className={`terminal-form ${demoTyping ? "is-typing" : ""}`} onSubmit={submit}>
+          {demoTyping ? (
+            <div className="terminal-demo-entry" aria-live="polite" aria-label={lang === "ar" ? "يتم كتابة أمر تلقائياً" : "Typing a demo command"}>
+              <span className="terminal-prompt"><ChevronRight size={15} />$</span>
+              <span>{demoCommand}</span><span className="terminal-caret" aria-hidden="true" />
+            </div>
+          ) : (
+            <>
+              <span className="terminal-prompt"><ChevronRight size={15} />$</span>
+              <input ref={inputRef} value={input} onChange={(event) => { stopDemo(); setInput(event.target.value); }} aria-label={text(copy.terminal.hint, lang)} autoComplete="off" spellCheck="false" placeholder={text(copy.terminal.hint, lang)} />
+              <button type="submit" className="terminal-submit" aria-label={text(copy.terminal.run, lang)}><Command size={15} /></button>
+            </>
+          )}
         </form>
       </div>
       <div className="terminal-suggestions" dir={lang === "ar" ? "rtl" : "ltr"}>
