@@ -25,7 +25,7 @@ export default function Home() {
       <div className="ambient-grid" aria-hidden="true" />
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Nabil Hamada home">
-          <img src="/manus-storage/nabil-mark_f131d369.png" alt="" className="brand-mark" onError={hideBrokenImage} />
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030822498/SjeLwCuNaaqEJDDU.png" alt="" className="brand-mark" onError={hideBrokenImage} />
           <span className="brand-copy"><strong>NABIL</strong><em>H.</em><small>FULL-STACK / LARAVEL</small></span>
         </a>
         <nav className={`main-nav ${mobileMenu ? "is-open" : ""}`} aria-label={lang === "ar" ? "التنقل الرئيسي" : "Primary navigation"}>
@@ -40,7 +40,7 @@ export default function Home() {
 
       <main id="top">
         <section className="hero-section" aria-labelledby="hero-title">
-          <img src="/manus-storage/nabil-terminal-hero_c245ecdc.png" alt="" className="hero-art" aria-hidden="true" />
+          <img src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030822498/yABXXqhPxKDHxjrI.png" alt="" className="hero-art" aria-hidden="true" />
           <div className="hero-copy">
             <div className="eyebrow"><span className="eyebrow-dot" /> {text(copy.hero.eyebrow, lang)}</div>
             <h1 id="hero-title">{text(copy.hero.headline, lang)}</h1>
@@ -64,7 +64,7 @@ export default function Home() {
           <div className="about-layout">
             <div className="section-heading"><span className="micro-label">NABIL HAMADA / 2026</span><h2 id="about-title">{text(copy.about.title, lang)}</h2></div>
             <div className="about-copy"><Quote size={25} className="quote-mark" /><p>{text(copy.about.body, lang)}</p><div className="about-tags"><span>Enterprise systems</span><span>Secure by design</span><span>Built to scale</span></div></div>
-            <div className="system-map-card"><img src="/manus-storage/nabil-system-map_c58a6326.png" alt="" aria-hidden="true" /><div className="system-map-caption"><Network size={17} /><span>{lang === "ar" ? "تفكير من النظام إلى الإشارة" : "Thinking from system to signal"}</span></div></div>
+            <div className="system-map-card"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030822498/xqpMYZyitfsMRVGN.png" alt="" aria-hidden="true" /><div className="system-map-caption"><Network size={17} /><span>{lang === "ar" ? "تفكير من النظام إلى الإشارة" : "Thinking from system to signal"}</span></div></div>
           </div>
         </section>
 
@@ -97,7 +97,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="site-footer"><div className="footer-brand"><img src="/manus-storage/nabil-mark_f131d369.png" alt="" onError={hideBrokenImage} /><span>NABIL HAMADA / <strong>FULL-STACK</strong></span></div><p>{text(copy.footer.built, lang)}</p><a href="#top">{text(copy.footer.back, lang)} <ArrowUpRight size={14} /></a></footer>
+      <footer className="site-footer"><div className="footer-brand"><img src="https://files.manuscdn.com/user_upload_by_module/session_file/310419663030822498/SjeLwCuNaaqEJDDU.png" alt="" onError={hideBrokenImage} /><span>NABIL HAMADA / <strong>FULL-STACK</strong></span></div><p>{text(copy.footer.built, lang)}</p><a href="#top">{text(copy.footer.back, lang)} <ArrowUpRight size={14} /></a></footer>
     </div>
   );
 }

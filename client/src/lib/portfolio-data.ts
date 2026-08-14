@@ -130,7 +130,7 @@ export const contact = {
   phoneAlt: "+201007234695",
   github: "https://github.com/nabil12ful",
   linkedin: "https://linkedin.com/in/nabil7amada",
-  resume: "/manus-storage/Nabil_Hamada_Resume-3_2fffebac.pdf",
+  resume: "https://files.manuscdn.com/user_upload_by_module/session_file/310419663030822498/CWxScRCGIbiZQUcI.pdf",
 };
 
 export function text(value: I18nText, lang: Lang) {
